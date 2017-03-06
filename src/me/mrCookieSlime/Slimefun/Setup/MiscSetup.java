@@ -116,7 +116,7 @@ public class MiscSetup {
 				
 				AutomatedCraftingChamber.recipes.put(builder.toString(), RecipeType.getRecipeOutputList((SlimefunMachine) SlimefunItem.getByName("ENHANCED_CRAFTING_TABLE"), inputs));
 			}
-			SlimefunStartup.instance.myTitanHooks.setupVanillaCraft();
+			//SlimefunStartup.instance.myTitanHooks.setupVanillaCraft();
 		}
 		
 		SlimefunItem grinder = SlimefunItem.getByName("GRIND_STONE");

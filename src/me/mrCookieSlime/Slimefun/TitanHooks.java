@@ -11,23 +11,17 @@ import me.mrCookieSlime.Slimefun.Android.ProgrammableAndroid;
 import me.mrCookieSlime.Slimefun.Lists.Categories;
 import me.mrCookieSlime.Slimefun.Lists.RecipeType;
 import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
-import me.mrCookieSlime.Slimefun.Objects.LockedCategory;
-import me.mrCookieSlime.Slimefun.Objects.Research;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineHelper;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.AutoDisenchanter;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.AutoEnchanter;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.firesoftitan.AncientAltarCrafter;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.firesoftitan.AutomatedAncientAltarCrafter;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.firesoftitan.AutomatedVanillaCraftingChamber;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.Soul;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
-import me.mrCookieSlime.Slimefun.api.energy.EnergyTicker;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.*;
@@ -39,8 +33,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
-import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
@@ -65,16 +57,7 @@ public class TitanHooks {
     public static ItemStack AUTOMATED_ANCIENT_ALTAR_CRAFTER = new CustomItem(new MaterialData(Material.WORKBENCH), "&6Automated Ancient Altar Crafter", "", "&6Advanced Machine", "&8\u21E8 &e\u26A1 &750 J/Item");
     public static ItemStack THERMAL_GENERATOR;
     public static List<AContainer> allMachines = new ArrayList<AContainer>();
-    private static LockedCategory ELECTRICITY = null;
 
-    static {
-        try {
-            THERMAL_GENERATOR = new CustomItem(CustomSkull.getItem("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTM0M2NlNThkYTU0Yzc5OTI0YTJjOTMzMWNmYzQxN2ZlOGNjYmJlYTliZTQ1YTdhYzg1ODYwYTZjNzMwIn19fQ=="), "&cThermal Generator", "", "&4End-Game Generator", "&8\u21E8 &e\u26A1 &78192 J Buffer", "&8\u21E8 &e\u26A1 &7500 J/s", "&bRequires:","&63x3 of lava below", "&63x3 of Air above", "&4Could Exploded!");
-            ELECTRICITY = new LockedCategory(new CustomItem(CustomSkull.getItem("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTU4NDQzMmFmNmYzODIxNjcxMjAyNThkMWVlZThjODdjNmU3NWQ5ZTQ3OWU3YjBkNGM3YjZhZDQ4Y2ZlZWYifX19"), "&bEnergy and Electricity", "", "&a> Click to open"), 5, Categories.MACHINES_1);
-        } catch (Exception e) {
-
-        }
-    }
 
     ;
 
@@ -155,7 +138,7 @@ public class TitanHooks {
 
         for (Map.Entry<Location, Boolean> entry: remove.entrySet()) {
             if (entry.getKey().getChunk().isLoaded()) {
-                if (entry.getKey().getBlock().getType() != Material.SKULL) {
+                if (entry.getKey().getBlock().getType() == Material.AIR) {
                     BlockStorage._integrated_removeBlockInfo(entry.getKey(), entry.getValue());
                     SlimefunStartup.instance.myTitanHooks.deleteBackup(entry.getKey());
                 }
@@ -566,264 +549,12 @@ public class TitanHooks {
         }
         return string1.equals(string2);
     }
-    public static void setupVanillaCraft()
-    {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {
-            @Override
-            public void run() {
-                Iterator iterator2 = Bukkit.recipeIterator();
-                while (iterator2.hasNext()) {
-                    Recipe r = (Recipe) iterator2.next();
-                    if (r instanceof ShapedRecipe)
-                    {
-                        ShapedRecipe SR = (ShapedRecipe)r;
-                        String[] shapeS = SR.getShape();
-                        Map<Character, ItemStack> MapCM = SR.getIngredientMap();
-                        ItemStack[] Reci = {null, null, null, null, null, null, null, null, null};
-                        String myName = "";
-                        Character[] key = new Character[9];
-                        int counter = 0;
-                        int[] yH = {0,1,2,3,4,5,6,7,8};//{0,3,6,1,4,7,2,5,8};
-                        String teShape = "";
-                        for (int o = 0; o < shapeS.length;o++ )
-                        {
-                            shapeS[o] = shapeS[o] + "***********";
-                            shapeS[o] = shapeS[o].substring(0, 3);
-
-                            for (int p = 0; p < shapeS[o].length();p++ )
-                            {
-                                key[yH[counter]] = shapeS[o].charAt(p);
-                                counter++;
-                            }
-                            teShape = teShape + shapeS[o]  + "<>";
-                        }
-                        for (int o = shapeS.length; o < 3;o++ )
-                        {
-                            String missed = "***";
-
-                            for (int p = 0; p < missed.length();p++ )
-                            {
-                                key[yH[counter]] = missed.charAt(p);
-                                counter++;
-                            }
-                            teShape = teShape + "XXX"  + "<>";
-                        }
-                        Short Dura = SR.getResult().getDurability();
-
-                        boolean goodRec = false;
-                        for (int o = 0; o < 9;o++ )
-                        {
-
-                            Reci[o] = MapCM.get(key[o]);
-
-                            if (Reci[o] == null || Reci[o].getType() == Material.AIR)
-                            {
-                                myName = myName + "null" + ChatColor.GRAY;
-                            }
-                            else {
-                                goodRec = true;
-                                myName = myName + Reci[o].getType().toString() + ":" + Reci[o].getDurability() + ChatColor.GRAY;
-                            }
-                        }
-                        if (goodRec) {
-                            recipesV.put(myName, r.getResult());
-                        }
-                    }
-                }
-                System.out.println("[Slimefun4]: All vinilla recipes are loaded!");
-            }
-        }, 300);
-    }
     public void registerCargo()
     {
 
     }
     public void registerNewRecipes()
     {
-        new AutomatedVanillaCraftingChamber(TitanHooks.ELECTRICITY, AUTOMATED_VANILLA_CRAFTING_CHAMBER, "AUTOMATED_VANILLA_CRAFTING_CHAMBER", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {null, new ItemStack(Material.WORKBENCH), null, SlimefunItems.CARGO_MOTOR, SlimefunItems.COPPER_INGOT, SlimefunItems.CARGO_MOTOR, null, SlimefunItems.ELECTRIC_MOTOR, null}) {
-
-            @Override
-            public int getEnergyConsumption() {
-                return 10;
-            }
-        }.registerChargeableBlock(true, 256);
-
-        new AncientAltarCrafter(TitanHooks.ELECTRICITY, ANCIENT_ALTAR_CRAFTER, "ANCIENT_ALTAR_CRAFTER_CHAMBER", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {null, SlimefunItems.ANCIENT_PEDESTAL, null, SlimefunItems.CARGO_MOTOR, SlimefunItems.ANCIENT_ALTAR, SlimefunItems.CARGO_MOTOR, SlimefunItems.ANCIENT_PEDESTAL, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.ANCIENT_PEDESTAL}) {
-
-            @Override
-            public int getEnergyConsumption() {
-                return 50;
-            }
-        }.registerChargeableBlock(true, 256);
-
-        new AutomatedAncientAltarCrafter(TitanHooks.ELECTRICITY, AUTOMATED_ANCIENT_ALTAR_CRAFTER, "AUTOMATED_ANCIENT_ALTAR_CRAFTER_CHAMBER", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {null, new ItemStack(Material.WORKBENCH), null, SlimefunItems.CARGO_MOTOR, ANCIENT_ALTAR_CRAFTER, SlimefunItems.CARGO_MOTOR, null, SlimefunItems.ELECTRIC_MOTOR, null}) {
-
-            @Override
-            public int getEnergyConsumption() {
-                return 50;
-            }
-        }.registerChargeableBlock(true, 256);
-
-
-        new SlimefunItem(TitanHooks.ELECTRICITY, TitanHooks.THERMAL_GENERATOR, "THERMAL_GENERATOR", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {SlimefunItems.HEATING_COIL, SlimefunItems.SOLAR_GENERATOR_4, SlimefunItems.HEATING_COIL, SlimefunItems.REINFORCED_ALLOY_INGOT, SlimefunItems.LARGE_CAPACITOR, SlimefunItems.REINFORCED_ALLOY_INGOT, SlimefunItems.HEATING_COIL, SlimefunItems.SOLAR_GENERATOR_4, SlimefunItems.HEATING_COIL})
-                .register(true, new EnergyTicker() {
-
-                    @Override
-                    public double generateEnergy(Location l, SlimefunItem item, Config data) {
-                        try {
-                            if (l == null) {
-                                return 0;
-                            }
-                            Location lavaCheck = l.clone().add(0, -1, 0);
-                            Location AirCheck = l.clone().add(0, 1, 0);
-                            boolean Run = true;
-                            boolean explode = false;
-                            if (l.getChunk().isLoaded()) {
-                                try {
-                                    for (int x = -1; x < 2; x++) {
-                                        for (int z = -1; z < 2; z++) {
-                                            if (lavaCheck.clone().add(x, 0, z).getBlock().getType() != Material.STATIONARY_LAVA) {
-                                                Run = false;
-                                            }
-                                            if (AirCheck.clone().add(x, 0, z).getBlock().getType() != Material.AIR) {
-                                                explode = true;
-                                            }
-                                        }
-                                    }
-                                } catch (Exception e) {
-
-                                }
-                            }
-                            if (Run && !explode) {
-                                double past = 256 * (1D - (l.getBlockY() / 100D));
-                                return past;
-                            } else {
-                                if (explode && Run) {
-                                    Bukkit.getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {
-
-                                        @Override
-                                        public void run() {
-                                            AirCheck.getWorld().createExplosion(AirCheck.add(0, 7, 0).clone(), 6);
-                                            BlockStorage.clearBlockInfo(l);
-
-                                            for (int y = 0; y < 100; y++) {
-                                                for (int x = -1; x < 2; x++) {
-                                                    for (int z = -1; z < 2; z++) {
-                                                        Location exp = l.clone().add(x, y, z);
-                                                        if (BlockStorage.hasBlockInfo(exp)) {
-                                                            BlockStorage.clearBlockInfo(exp);
-                                                        }
-                                                        AirCheck.getWorld().getBlockAt(exp).setType(Material.AIR);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }, 20);
-
-                                }
-                                return 0;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            return 0;
-                        }
-                    }
-                        //8192
-                    @Override
-                    public boolean explode(Location l) {
-                        return false;
-                    }
-
-                });
-        ChargableBlock.registerChargableBlock("THERMAL_GENERATOR", 8192, false);
-
-
-
-        Slimefun.registerResearch(new Research(79001, "Thermal Power Plant", 89), TitanHooks.THERMAL_GENERATOR);
-        Slimefun.registerResearch(new Research(79002, "Ancient Altar Crafter", 75), TitanHooks.ANCIENT_ALTAR_CRAFTER);
-        Slimefun.registerResearch(new Research(79003, "Vanilla Auto Crafter", 25), TitanHooks.AUTOMATED_VANILLA_CRAFTING_CHAMBER);
-        Slimefun.registerResearch(new Research(79004, "Automated Ancient Altar Crafter", 25), TitanHooks.AUTOMATED_ANCIENT_ALTAR_CRAFTER);
-    }
-
-    public static void vanillaCraft(AutomatedVanillaCraftingChamber machine, Block b, BlockMenu menu) {
-        String myName = "";
-        boolean craft = false;
-        HashMap<String, Short> MatList = new HashMap<String, Short>();
-        for (int o = 0; o < 9;o++ )
-        {
-            ItemStack item = menu.getItemInSlot(machine.getInputSlots()[o]);
-            if (item == null)
-            {
-                myName = myName + "null" + ChatColor.GRAY;
-            }
-            else {
-                if (item.getType() == Material.AIR)
-                {
-                    myName = myName + "null" + ChatColor.GRAY;
-                }
-                else {
-                    if (item.getAmount() < 2 && item.getMaxStackSize() > 1)
-                    {
-                        return;
-                    }
-                    craft = true;//
-                    myName = myName + item.getType().toString() + ":" + item.getDurability() + ChatColor.GRAY;
-                    MatList.put(item.getType().toString() , item.getDurability());
-                }
-            }
-        }
-
-
-        if (craft) {
-            craftFinal(machine, b, menu, myName, MatList);
-        }
-
-
-
-    }
-    private static void craftFinal(AutomatedVanillaCraftingChamber machine, Block b, BlockMenu menu, String myName, HashMap<String, Short> matList) {
-        craftFinal(machine, b, menu, myName, matList, 0);
-    }
-    private static void craftFinal(AutomatedVanillaCraftingChamber machine, Block b, BlockMenu menu, String myName, HashMap<String, Short> matList, int times) {
-        times++;
-        if (!checkAndCraft(machine, b, menu, myName)) {
-            for(String mat: matList.keySet())
-            {
-                String newList = myName.replace(mat + ":" + matList.get(mat), mat + ":32767" );
-                if (!newList.equals(myName)) {
-                    if (checkAndCraft(machine, b, menu, newList)) {
-                        break;
-                    } else {
-                        if (times < 10) {
-                            craftFinal(machine, b, menu, newList, matList, times);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private static boolean checkAndCraft(AutomatedVanillaCraftingChamber machine, Block b, BlockMenu menu, String myName) {
-        if (recipesV.containsKey(myName)) {
-            ItemStack output = recipesV.get(myName);
-
-            if (machine.fits(b, new ItemStack[]{output})) {
-                machine.pushItems(b, new ItemStack[]{output});
-                ChargableBlock.addCharge(b, -machine.getEnergyConsumption());
-                for (int j = 0; j < 9; j++) {
-                    if (menu.getItemInSlot(machine.getInputSlots()[j]) != null)
-                        menu.replaceExistingItem(machine.getInputSlots()[j], InvUtils.decreaseItem(menu.getItemInSlot(machine.getInputSlots()[j]), 1));
-                }
-
-            }
-            return  true;
-        }
-        return  false;
     }
     public void SetupAnd(boolean oktoRun)
     {
