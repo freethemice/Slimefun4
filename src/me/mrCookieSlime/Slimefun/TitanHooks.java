@@ -45,6 +45,7 @@ import java.util.*;
  */
 public class TitanHooks {
     public static Config backupChecker = new Config("Slimefun-backups.yml");
+    public static Config backupLog = new Config("Slimefun-backups.log");
     public static Map<String, String> backupCheck = new HashMap<String, String>();
 
     public static List<AContainer> allMachines = new ArrayList<AContainer>();
@@ -89,10 +90,12 @@ public class TitanHooks {
                         BlockStorage.setBlockInfo(place,(String)backupCheck.get(s),true);
 
                         System.out.println("SF --------------------> Fixed: " + s);
+                        backupLog.setValue(s, "FIXED: " + (String)backupCheck.get(s));
                         if (!BlockStorage.hasBlockInfo(place))
                         {
                             System.out.println("SF --------------------> ERROR Fixing: " + s);
                             System.out.println("SF ----------------->>> " + (String)backupCheck.get(s));
+                            backupLog.setValue(s, "ERROR: " + (String)backupCheck.get(s));
                             backupCheck.remove(s);
                             break;
                         }
@@ -113,14 +116,17 @@ public class TitanHooks {
                     {
                         BlockStorage.clearBlockInfo(place);
                         System.out.println("SF --------------------> Delete: " + deleteme.get(i));
+                        backupLog.setValue(place.toString(), "Slimefun Delete: " + (String)deleteme.get(i));
                     }
                     else
                     {
+                        backupLog.setValue(place.toString(), "Backup Delete: " + (String)deleteme.get(i));
                         backupCheck.remove(deleteme.get(i));
                         System.out.println("BC --------------------> Delete: " + deleteme.get(i));
                     }
                 }
                 //Bukkit.getServer().broadcastMessage(ChatColor.GRAY  + "Slimefun backup check done!");
+                backupLog.save();
             }
         }, 300, 1000);
     }
@@ -173,14 +179,18 @@ public class TitanHooks {
     public static void deleteBackup(Location l)
     {
         boolean wasright =false;
+        String logInfo = "";
         if (l.getChunk().isLoaded()) {
             if (l.getBlock().getType() == Material.AIR) {
+                logInfo = backupCheck.get(l.getWorld().getName() + "," + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
                 backupCheck.remove(l.getWorld().getName() + "," + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
                 wasright = true;
             }
         }
         if (!wasright)
         {
+            backupLog.setValue(l.toString(), "Wrong Delete: " + logInfo);
+            backupLog.save();
             System.out.println("SF --------------------> Wrong delete: " + l.toString());
             try{
                 throw new Exception("Wrong Delete");
