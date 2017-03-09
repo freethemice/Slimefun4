@@ -114,15 +114,17 @@ public class TitanHooks {
 
                     if (BlockStorage.hasBlockInfo(place))
                     {
+                        backupLog.setValue(place.toString(), "Slimefun Delete: " + (String)BlockStorage.getBlockInfoAsJson(place));
                         BlockStorage.clearBlockInfo(place);
                         System.out.println("SF --------------------> Delete: " + deleteme.get(i));
-                        backupLog.setValue(place.toString(), "Slimefun Delete: " + (String)deleteme.get(i));
+
                     }
                     else
                     {
-                        backupLog.setValue(place.toString(), "Backup Delete: " + (String)deleteme.get(i));
-                        backupCheck.remove(deleteme.get(i));
                         System.out.println("BC --------------------> Delete: " + deleteme.get(i));
+                        backupLog.setValue(place.toString(), "Backup Delete: " + backupCheck.get(deleteme.get(i)));
+                        backupCheck.remove(deleteme.get(i));
+
                     }
                 }
                 //Bukkit.getServer().broadcastMessage(ChatColor.GRAY  + "Slimefun backup check done!");
@@ -215,6 +217,27 @@ public class TitanHooks {
             json.put(key, cfg.getString(key));
         }
         setBackup(l, json.toJSONString());
+
+        if (BlockStorage.getBlockInfo(l, "id") == null)
+        {
+            try{
+                throw new Exception("No ID");
+            }catch(Exception ex){
+                ex.printStackTrace();
+                System.out.println(ex.toString());
+                System.out.println(ex.getMessage());
+                backupLog.setValue(l.toString(), "No ID, "+ ex.toString() + ", " + ex.getMessage());
+                backupLog.save();
+            }
+        }
+    }
+    public static boolean checkForID(String Info)
+    {
+        if (Info.equalsIgnoreCase("id"))
+        {
+            return true;
+        }
+        return false;
     }
     public static ItemStack getHead(String Texture)
     {
