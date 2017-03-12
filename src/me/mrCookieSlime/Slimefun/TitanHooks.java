@@ -77,27 +77,27 @@ public class TitanHooks {
                     double y = Double.parseDouble(e2[2]);
                     double z = Double.parseDouble(e2[3]);
 
-                    Location place = new Location(world, x, y, z);
-                    if (place.getChunk().isLoaded())
-                    {
-                        if (place.getBlock().getType() == Material.AIR)
-                        {
-                            deleteme.add(s);
-                            continue;
-                        }
-                    }
-                    if (!BlockStorage.hasBlockInfo(place)) {
-                        BlockStorage.setBlockInfo(place,(String)backupCheck.get(s),true);
+                    if (world.isChunkLoaded((int)x >> 4, (int)z >> 4)) {
+                        Location place = new Location(world, x, y, z);
+                        if (place.getChunk().isLoaded()) {
+                            if (place.getBlock().getType() == Material.AIR) {
+                                deleteme.add(s);
+                                continue;
+                            }
 
-                        System.out.println("SF --------------------> Fixed: " + s);
-                        backupLog.setValue(s, "FIXED: " + (String)backupCheck.get(s));
-                        if (!BlockStorage.hasBlockInfo(place))
-                        {
-                            System.out.println("SF --------------------> ERROR Fixing: " + s);
-                            System.out.println("SF ----------------->>> " + (String)backupCheck.get(s));
-                            backupLog.setValue(s, "ERROR: " + (String)backupCheck.get(s));
-                            backupCheck.remove(s);
-                            break;
+                            if (!BlockStorage.hasBlockInfo(place)) {
+                                BlockStorage.setBlockInfo(place, (String) backupCheck.get(s), true);
+
+                                System.out.println("SF --------------------> Fixed: " + s);
+                                backupLog.setValue(s, "FIXED: " + (String) backupCheck.get(s));
+                                if (!BlockStorage.hasBlockInfo(place)) {
+                                    System.out.println("SF --------------------> ERROR Fixing: " + s);
+                                    System.out.println("SF ----------------->>> " + (String) backupCheck.get(s));
+                                    backupLog.setValue(s, "ERROR: " + (String) backupCheck.get(s));
+                                    backupCheck.remove(s);
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
@@ -108,23 +108,21 @@ public class TitanHooks {
                     double x = Double.parseDouble(e2[1]);
                     double y = Double.parseDouble(e2[2]);
                     double z = Double.parseDouble(e2[3]);
+                    if (world.isChunkLoaded((int)x >> 4, (int)z >> 4)) {
+                        Location place = new Location(world, x, y, z);
 
-                    Location place = new Location(world, x, y, z);
 
+                        if (BlockStorage.hasBlockInfo(place)) {
+                            backupLog.setValue(place.toString(), "Slimefun Delete: " + (String) BlockStorage.getBlockInfoAsJson(place));
+                            BlockStorage.clearBlockInfo(place);
+                            System.out.println("SF --------------------> Delete: " + deleteme.get(i));
 
-                    if (BlockStorage.hasBlockInfo(place))
-                    {
-                        backupLog.setValue(place.toString(), "Slimefun Delete: " + (String)BlockStorage.getBlockInfoAsJson(place));
-                        BlockStorage.clearBlockInfo(place);
-                        System.out.println("SF --------------------> Delete: " + deleteme.get(i));
+                        } else {
+                            System.out.println("BC --------------------> Delete: " + deleteme.get(i));
+                            backupLog.setValue(place.toString(), "Backup Delete: " + backupCheck.get(deleteme.get(i)));
+                            backupCheck.remove(deleteme.get(i));
 
-                    }
-                    else
-                    {
-                        System.out.println("BC --------------------> Delete: " + deleteme.get(i));
-                        backupLog.setValue(place.toString(), "Backup Delete: " + backupCheck.get(deleteme.get(i)));
-                        backupCheck.remove(deleteme.get(i));
-
+                        }
                     }
                 }
                 //Bukkit.getServer().broadcastMessage(ChatColor.GRAY  + "Slimefun backup check done!");
