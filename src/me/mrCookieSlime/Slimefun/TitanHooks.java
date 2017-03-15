@@ -1,5 +1,6 @@
 package me.mrCookieSlime.Slimefun;
 
+import me.BadBones69.CrazyEnchantments.API.EnchantmentType;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.InvUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.Item.CustomItem;
@@ -334,6 +335,14 @@ public class TitanHooks {
         AC.progress.remove(b);
         AC.processing.remove(b);
     }
+    public int fromRoman(String i)
+    {
+        return i.equals("I")?1:i.equals("II")?2:i.equals("III")?3:i.equals("IV")?4:i.equals("V")?5:i.equals("VI")?6:i.equals("VII")?7:i.equals("VIII")?8:i.equals("IX")?9:i.equals("X")?10:10;
+    }
+    public String toRoman(int i)
+    {
+        return i == 0?"I":(i == 1?"I":(i == 2?"II":(i == 3?"III":(i == 4?"IV":(i == 5?"V":(i == 6?"VI":(i == 7?"VII":(i == 8?"VIII":(i == 9?"IX":(i == 10?"X":String.valueOf(i)))))))))));
+    }
     public void AutoEnchanter_tick(Block b, AutoEnchanter AE) {
         if (AE.isProcessing(b)) {
             int timeleft = AE.progress.get(b);
@@ -364,6 +373,8 @@ public class TitanHooks {
             }
         }
         else {
+            String OldPower = "";
+            String Oldname = "";
             MachineRecipe r = null;
             slots:
             for (int slot: AE.getInputSlots()) {
@@ -380,12 +391,62 @@ public class TitanHooks {
                         {
                             List<String> lorlore = item.getItemMeta().getLore();
                             lore = new ArrayList<String>();
-                            for(int i = 0; i<lorlore.size(); i++)
-                            {
-                                lore.add(ChatColor.AQUA + "Titan." + lorlore.get(i));
-                            }
+                            boolean make = true;
+                            boolean CE = false;
+                            String Power = "I";
+                            if (lorlore.size() > 2) {
+                                make = false;
+                                CE = true;
+                                EnchantmentType type =  EnchantmentType.getFromName(ChatColor.stripColor(lorlore.get(2)).replace(" Only", "").toLowerCase());
+                                if (type == null)
+                                {
+                                    type =  EnchantmentType.getFromName(ChatColor.stripColor(lorlore.get(2)).replace("s Only", "").toLowerCase());
+                                }
+                                if (type != null) {
+                                    List<Material> typeMats = (List<Material>) type.getItems().clone();
+                                    if (typeMats.contains(target.getType())) {
+                                        make = true;
+                                        if (target.getItemMeta() != null) {
+                                            List<String> targetLore = target.getItemMeta().getLore();
+                                            if (targetLore != null) {
+                                                for (int i = 0; i < targetLore.size(); i++) {
+                                                    String[] getRo = targetLore.get(i).split(" ");
+                                                    if (getRo.length > 1) {
+                                                        if (getRo[0].equals(ChatColor.AQUA + "Titan." + lorlore.get(0))) {
+                                                            OldPower = getRo[1];
+                                                            int NumberR = fromRoman(getRo[1]);
+                                                            if (NumberR < 10) {
+                                                                NumberR++;
+                                                            }
+                                                            Power = toRoman(NumberR);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
 
-                            amount++;
+                                }
+                            }
+                            if(make) {
+                                if (lorlore.size() > 0) {
+                                    for (int i = 0; i < lorlore.size(); i++) {
+                                        if (lorlore.get(i).equals(""))
+                                        {
+                                            break;
+                                        }
+                                        if (CE)
+                                        {
+                                            Oldname = lorlore.get(i);
+                                            lore.add(ChatColor.AQUA + "Titan." + lorlore.get(i) + " " + Power);
+                                        }
+                                        else {
+                                            lore.add(ChatColor.AQUA + "Titan." + lorlore.get(i));
+                                        }
+                                    }
+                                    amount++;
+                                }
+                            }
                         }
                     }
                     EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
@@ -424,7 +485,9 @@ public class TitanHooks {
 
                                     for(int i = 0; i<newLore.size(); i++)
                                     {
-                                        lore.add(newLore.get(i));
+                                        if (!newLore.get(i).equals(ChatColor.AQUA +"Titan." + Oldname + " " + OldPower)) {
+                                            lore.add(newLore.get(i));
+                                        }
                                     }
                                 }
 
