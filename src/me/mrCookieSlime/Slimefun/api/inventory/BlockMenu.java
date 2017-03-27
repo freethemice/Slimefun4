@@ -2,7 +2,6 @@ package me.mrCookieSlime.Slimefun.api.inventory;
 
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
-import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.HumanEntity;
@@ -23,12 +22,6 @@ public class BlockMenu extends ChestMenu {
 	
 	private static String serializeLocation(Location l) {
 		return l.getWorld().getName() + ";" + l.getBlockX() + ";" + l.getBlockY() + ";" + l.getBlockZ();
-	}
-	@Override
-	public void open(Player... players){
-		super.open(players);
-		this.changes++;
-		SlimefunStartup.instance.myTitanHooks.open(this);
 	}
 	public BlockMenu(BlockMenuPreset preset, Location l) {
 		super(preset.getTitle());
@@ -121,7 +114,18 @@ public class BlockMenu extends ChestMenu {
 		
 		changes++;
 	}
-	
+	@Override
+	public ChestMenu addMenuOpeningHandler(MenuOpeningHandler handler) {
+		if (handler instanceof SaveHandler) {
+			return super.addMenuOpeningHandler(new SaveHandler(this, ((SaveHandler) handler).handler));
+		}
+		else {
+			return super.addMenuOpeningHandler(new SaveHandler(this, handler));
+		}
+
+	}
+
+
 	public void close() {
 		Iterator<HumanEntity> iterator = toInventory().getViewers().iterator();
 		while (iterator.hasNext()) {
@@ -129,5 +133,25 @@ public class BlockMenu extends ChestMenu {
 			human.closeInventory();
 		}
 	}
-	
+
+	public class SaveHandler implements MenuOpeningHandler {
+
+		BlockMenu menu;
+		MenuOpeningHandler handler;
+
+		public SaveHandler(BlockMenu menu, MenuOpeningHandler handler) {
+			this.handler = handler;
+			this.menu = menu;
+		}
+
+		@Override
+		public void onOpen(Player p) {
+			handler.onOpen(p);
+			menu.changes++;
+
+		}
+
+	}
+
+
 }

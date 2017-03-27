@@ -50,6 +50,7 @@ public class SlimefunItem {
 	Research research;
 	boolean ghost, replacing, disenchantable;
 	Set<ItemHandler> itemhandlers;
+	boolean addon = false;
 	URID urid;
 	boolean ticking = false;
 	BlockTicker ticker;
@@ -166,6 +167,7 @@ public class SlimefunItem {
 	}
 	
 	public void register(boolean slimefun) {
+		addon = !slimefun;
 		try {
 			if (recipe.length < 9) recipe = new ItemStack[] {null, null, null, null, null, null, null, null, null};
 			all.add(this);
@@ -466,4 +468,8 @@ public class SlimefunItem {
 	public void addWikipage(String page) {
 		Slimefun.addWikiPage(this.getName(), "https://github.com/mrCookieSlime/Slimefun4/wiki/" + page);
 	}
+	public boolean isAddonItem() {
+		return this.addon;
+	}
+
 }

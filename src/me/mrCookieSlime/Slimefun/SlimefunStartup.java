@@ -148,6 +148,7 @@ public class SlimefunStartup extends JavaPlugin {
 			if (!new File("data-storage/Slimefun/blocks").exists()) new File("data-storage/Slimefun/blocks").mkdirs();
 			if (!new File("data-storage/Slimefun/stored-blocks").exists()) new File("data-storage/Slimefun/stored-blocks").mkdirs();
 			if (!new File("data-storage/Slimefun/stored-inventories").exists()) new File("data-storage/Slimefun/stored-inventories").mkdirs();
+			if (!new File("data-storage/Slimefun/stored-chunks").exists()) new File("data-storage/Slimefun/stored-chunks").mkdirs();
 			if (!new File("data-storage/Slimefun/universal-inventories").exists()) new File("data-storage/Slimefun/universal-inventories").mkdirs();
 			if (!new File("data-storage/Slimefun/waypoints").exists()) new File("data-storage/Slimefun/waypoints").mkdirs();
 			if (!new File("data-storage/Slimefun/block-backups").exists()) new File("data-storage/Slimefun/block-backups").mkdirs();
@@ -434,17 +435,19 @@ public class SlimefunStartup extends JavaPlugin {
 
 				for (File f1: new File("data-storage/Slimefun/stored-blocks/").listFiles()) {
 					for (File f: f1.listFiles()) {
-						ZipEntry entry = new ZipEntry("stored-blocks/" + f1.getName() + "/" + f.getName());
-						output.putNextEntry(entry);
-						FileInputStream input = new FileInputStream(f);
+						if (new File("data-storage/Slimefun/stored-chunks/chunks.sfc").exists()) {
+							ZipEntry entry = new ZipEntry("stored-chunks/chunks.sfc");
+							output.putNextEntry(entry);
+							FileInputStream input = new FileInputStream(new File("data-storage/Slimefun/stored-chunks/chunks.sfc"));
 
-						int length;
-						while ((length = input.read(buffer)) > 0) {
-							output.write(buffer, 0, length);
+							int length;
+							while ((length = input.read(buffer)) > 0) {
+								output.write(buffer, 0, length);
+							}
+
+							input.close();
+							output.closeEntry();
 						}
-
-						input.close();
-						output.closeEntry();
 					}
 				}
 
