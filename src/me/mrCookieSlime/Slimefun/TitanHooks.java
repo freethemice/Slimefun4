@@ -394,7 +394,7 @@ public class TitanHooks {
                             boolean make = true;
                             boolean CE = false;
                             String Power = "I";
-                            if (lorlore.size() > 2) {
+                            if (lorlore.size() > 3) {
                                 make = false;
                                 CE = true;
                                 EnchantmentType type =  EnchantmentType.getFromName(ChatColor.stripColor(lorlore.get(2)).replace(" Only", "").toLowerCase());
