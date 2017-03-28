@@ -1,6 +1,7 @@
 package me.mrCookieSlime.Slimefun;
 
-import me.BadBones69.CrazyEnchantments.API.EnchantmentType;
+
+import me.badbones69.crazyenchantments.api.EnchantmentType;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.InvUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.Item.CustomItem;
