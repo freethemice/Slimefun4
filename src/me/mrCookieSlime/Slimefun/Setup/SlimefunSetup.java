@@ -1271,7 +1271,7 @@ public class SlimefunSetup {
 					for (int i = 0; i < e.getBlock().getDrops().size(); i++) {
 						if (((List<ItemStack>) e.getBlock().getDrops()).get(i) != null) {
 							j++;
-							drops.add(e.getBlock().getType().toString().endsWith("_ORE") ? new CustomItem(((List<ItemStack>) e.getBlock().getDrops()).get(i), fortune): ((List<ItemStack>) e.getBlock().getDrops()).get(i));
+							drops.add(e.getBlock().getType().toString().endsWith("_ore") ? new CustomItem(((List<ItemStack>) e.getBlock().getDrops()).get(i), fortune): ((List<ItemStack>) e.getBlock().getDrops()).get(i));
 							if (RecipeCalculator.getSmeltedOutput(drops.get(i).getType()) != null) {
 								e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.MOBSPAWNER_FLAMES, 1);
 								drops.set(j, new CustomItem(RecipeCalculator.getSmeltedOutput(drops.get(i).getType()), drops.get(i).getAmount()));
