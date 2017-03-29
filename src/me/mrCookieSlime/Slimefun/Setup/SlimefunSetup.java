@@ -1946,6 +1946,9 @@ public class SlimefunSetup {
 				if (SlimefunManager.isItemSimiliar(item, SlimefunItems.EXPLOSIVE_PICKAXE, true)) {
 					e.getBlock().getWorld().createExplosion(e.getBlock().getLocation(), 0.0F);
 					e.getBlock().getWorld().playSound(e.getBlock().getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1F, 1F);
+					if (e.getBlock().getType().equals(Material.SKULL)) {
+						return true;
+					}
 					for (int x = -1; x <= 1; x++) {
 						for (int y = -1; y <= 1; y++) {
 							for (int z = -1; z <= 1; z++) {
