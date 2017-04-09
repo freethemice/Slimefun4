@@ -32,6 +32,7 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.*;
 import me.mrCookieSlime.Slimefun.Objects.tasks.RainbowTicker;
 import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import me.mrCookieSlime.Slimefun.Variables;
+import me.mrCookieSlime.Slimefun.api.Backpacks;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
@@ -61,6 +62,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.io.File;
 import java.util.*;
 
 @SuppressWarnings("deprecation")
@@ -115,18 +117,84 @@ public class SlimefunSetup {
 							boolean craft = true;
 							for (int j = 0; j < inv.getContents().length; j++) {
 								if (!SlimefunManager.isItemSimiliar(inv.getContents()[j], inputs.get(i)[j], true)) {
-									craft = false;
-									break;
+									if (SlimefunItem.getByItem(inputs.get(i)[j]) instanceof SlimefunBackpack) {
+										if (!SlimefunManager.isItemSimiliar(inv.getContents()[j], inputs.get(i)[j], false)) {
+											craft = false;
+											break;
+										}
+									}
+									else {
+										craft = false;
+										break;
+									};
 								}
 							}
 							if (craft) {
-								final ItemStack adding = RecipeType.getRecipeOutputList(machine, inputs.get(i));
+								final ItemStack adding = RecipeType.getRecipeOutputList(machine, inputs.get(i)).clone();
 								if (Slimefun.hasUnlocked(p, adding, true)) {
 									Inventory inv2 = Bukkit.createInventory(null, 9, "test");
 									for (int j = 0; j < inv.getContents().length; j++) {
 										inv2.setItem(j, inv.getContents()[j] != null ? (inv.getContents()[j].getAmount() > 1 ? new CustomItem(inv.getContents()[j], inv.getContents()[j].getAmount() - 1): null): null);
 									}
 									if (InvUtils.fits(inv2, adding)) {
+
+										SlimefunItem sfItem = SlimefunItem.getByItem(adding);
+
+										if (sfItem instanceof SlimefunBackpack) {
+											ItemStack backpack = null;
+
+											for (int j = 0; j < 9; j++) {
+												if (inv.getContents()[j] != null) {
+													if (inv.getContents()[j].getType() != Material.AIR) {
+														if (SlimefunItem.getByItem(inv.getContents()[j]) instanceof SlimefunBackpack) {
+															backpack = inv.getContents()[j];
+															break;
+														}
+													}
+												}
+											}
+											String id = "";
+											int size = ((SlimefunBackpack) sfItem).size;
+
+											if (backpack != null) {
+												for (String line: backpack.getItemMeta().getLore()) {
+													if (line.startsWith(ChatColor.translateAlternateColorCodes('&', "&7ID: ")) && line.contains("#")) {
+														id = line.replace(ChatColor.translateAlternateColorCodes('&', "&7ID: "), "");
+														Config cfg = new Config(new File("data-storage/Slimefun/Players/" + id.split("#")[0] + ".yml"));
+														cfg.setValue("backpacks." + id.split("#")[1] + ".size", size);
+														cfg.save();
+														break;
+													}
+												}
+											}
+
+											if (id.equals("")) {
+												for (int line = 0; line < adding.getItemMeta().getLore().size(); line++) {
+													if (adding.getItemMeta().getLore().get(line).equals(ChatColor.translateAlternateColorCodes('&', "&7ID: <ID>"))) {
+														ItemMeta im = adding.getItemMeta();
+														List<String> lore = im.getLore();
+														lore.set(line, lore.get(line).replace("<ID>", Backpacks.createBackpack(p, size)));
+														im.setLore(lore);
+														adding.setItemMeta(im);
+														break;
+													}
+												}
+											}
+											else {
+												for (int line = 0; line < adding.getItemMeta().getLore().size(); line++) {
+													if (adding.getItemMeta().getLore().get(line).equals(ChatColor.translateAlternateColorCodes('&', "&7ID: <ID>"))) {
+														ItemMeta im = adding.getItemMeta();
+														List<String> lore = im.getLore();
+														lore.set(line, lore.get(line).replace("<ID>", id));
+														im.setLore(lore);
+														adding.setItemMeta(im);
+														break;
+													}
+												}
+											}
+										}
+
+
 										for (int j = 0; j < 9; j++) {
 											if (inv.getContents()[j] != null) {
 												if (inv.getContents()[j].getType() != Material.AIR) {
@@ -137,6 +205,8 @@ public class SlimefunSetup {
 											}
 										}
 										p.getWorld().playSound(b.getLocation(), Sound.BLOCK_WOOD_BUTTON_CLICK_ON, 1, 1);
+
+
 										inv.addItem(adding);
 									}
 									else Messages.local.sendTranslation(p, "machines.full-inventory", true);
@@ -2112,19 +2182,19 @@ public class SlimefunSetup {
 			}
 		});
 
-		new SlimefunItem(Categories.PORTABLE, SlimefunItems.BACKPACK_SMALL, "SMALL_BACKPACK", RecipeType.ENHANCED_CRAFTING_TABLE,
+		new SlimefunBackpack(9, Categories.PORTABLE, SlimefunItems.BACKPACK_SMALL, "SMALL_BACKPACK", RecipeType.ENHANCED_CRAFTING_TABLE,
 		new ItemStack[] {new ItemStack(Material.LEATHER), null, new ItemStack(Material.LEATHER), SlimefunItems.GOLD_6K, new ItemStack(Material.CHEST), SlimefunItems.GOLD_6K, new ItemStack(Material.LEATHER), new ItemStack(Material.LEATHER), new ItemStack(Material.LEATHER)})
 		.register(true);
 
-		new SlimefunItem(Categories.PORTABLE, SlimefunItems.BACKPACK_MEDIUM, "MEDIUM_BACKPACK", RecipeType.ENHANCED_CRAFTING_TABLE,
+		new SlimefunBackpack(18, Categories.PORTABLE, SlimefunItems.BACKPACK_MEDIUM, "MEDIUM_BACKPACK", RecipeType.ENHANCED_CRAFTING_TABLE,
 		new ItemStack[] {new ItemStack(Material.LEATHER), null, new ItemStack(Material.LEATHER), SlimefunItems.GOLD_10K, SlimefunItems.BACKPACK_SMALL, SlimefunItems.GOLD_10K, new ItemStack(Material.LEATHER), new ItemStack(Material.LEATHER), new ItemStack(Material.LEATHER)})
 		.register(true);
 
-		new SlimefunItem(Categories.PORTABLE, SlimefunItems.BACKPACK_LARGE, "LARGE_BACKPACK", RecipeType.ENHANCED_CRAFTING_TABLE,
+		new SlimefunBackpack(27, Categories.PORTABLE, SlimefunItems.BACKPACK_LARGE, "LARGE_BACKPACK", RecipeType.ENHANCED_CRAFTING_TABLE,
 		new ItemStack[] {new ItemStack(Material.LEATHER), null, new ItemStack(Material.LEATHER), SlimefunItems.GOLD_14K, SlimefunItems.BACKPACK_MEDIUM, SlimefunItems.GOLD_14K, new ItemStack(Material.LEATHER), new ItemStack(Material.LEATHER), new ItemStack(Material.LEATHER)})
 		.register(true);
 
-		new SlimefunItem(Categories.PORTABLE, SlimefunItems.WOVEN_BACKPACK, "WOVEN_BACKPACK", RecipeType.ENHANCED_CRAFTING_TABLE,
+		new SlimefunBackpack(36, Categories.PORTABLE, SlimefunItems.WOVEN_BACKPACK, "WOVEN_BACKPACK", RecipeType.ENHANCED_CRAFTING_TABLE,
 		new ItemStack[] {SlimefunItems.CLOTH, null, SlimefunItems.CLOTH, SlimefunItems.GOLD_16K, SlimefunItems.BACKPACK_LARGE, SlimefunItems.GOLD_16K, SlimefunItems.CLOTH, SlimefunItems.CLOTH, SlimefunItems.CLOTH})
 		.register(true);
 
@@ -2287,7 +2357,7 @@ public class SlimefunSetup {
 			}
 		});
 
-		new SlimefunItem(Categories.PORTABLE, SlimefunItems.GILDED_BACKPACK, "GILDED_BACKPACK", RecipeType.ENHANCED_CRAFTING_TABLE,
+		new SlimefunBackpack(45, Categories.PORTABLE, SlimefunItems.GILDED_BACKPACK, "GILDED_BACKPACK", RecipeType.ENHANCED_CRAFTING_TABLE,
 		new ItemStack[] {SlimefunItems.GOLD_22K, null, SlimefunItems.GOLD_22K, new ItemStack(Material.LEATHER), SlimefunItems.WOVEN_BACKPACK, new ItemStack(Material.LEATHER), SlimefunItems.GOLD_22K, null, SlimefunItems.GOLD_22K})
 		.register(true);
 
@@ -2311,7 +2381,7 @@ public class SlimefunSetup {
 		new ItemStack[] {SlimefunItems.ENDER_LUMP_3, SlimefunItems.RUNE_AIR, SlimefunItems.ENDER_LUMP_3, SlimefunItems.RUNE_EARTH, SlimefunItems.NECROTIC_SKULL, SlimefunItems.RUNE_FIRE, SlimefunItems.ENDER_LUMP_3, SlimefunItems.RUNE_WATER, SlimefunItems.ENDER_LUMP_3})
 		.register(true);
 
-		new SoulboundItem(Categories.PORTABLE, SlimefunItems.BOUND_BACKPACK, "BOUND_BACKPACK",
+		new SoulboundBackpack(36, Categories.PORTABLE, SlimefunItems.BOUND_BACKPACK, "BOUND_BACKPACK",
 		new ItemStack[] {SlimefunItems.ENDER_LUMP_2, null, SlimefunItems.ENDER_LUMP_2, SlimefunItems.ESSENCE_OF_AFTERLIFE, SlimefunItems.GILDED_BACKPACK, SlimefunItems.ESSENCE_OF_AFTERLIFE, SlimefunItems.ENDER_LUMP_2, null, SlimefunItems.ENDER_LUMP_2})
 		.register(true);
 
