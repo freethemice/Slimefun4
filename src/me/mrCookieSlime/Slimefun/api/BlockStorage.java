@@ -344,8 +344,22 @@ public class BlockStorage {
 		Config cfg = new Config("data-storage/Slimefun/temp.yml");
 		if (hasBlockInfo(l)) cfg = getBlockInfo(l);
 		cfg.setValue(key, value);
-		setBlockInfo(l, cfg, updateTicker);
-		SlimefunStartup.instance.myTitanHooks.setBackup(l);
+		if (cfg.contains("id")) {
+			setBlockInfo(l, cfg, updateTicker);
+			SlimefunStartup.instance.myTitanHooks.setBackup(l);
+		}
+		else
+		{
+
+			try{
+				throw new Exception("No ID Try 2");
+			}catch(Exception ex){
+				ex.printStackTrace();
+				System.out.println(ex.toString());
+				System.out.println(ex.getMessage());
+			}
+
+		}
 	}
 	
 	public static boolean hasBlockInfo(Block block) {
@@ -376,7 +390,16 @@ public class BlockStorage {
 		for (String key: cfg.getKeys()) {
 			json.put(key, cfg.getString(key));
 		}
-		
+		if (!json.toJSONString().contains("\"id\""))
+		{
+			try{
+				throw new Exception("No ID Try 2");
+			}catch(Exception ex){
+				ex.printStackTrace();
+				System.out.println(ex.toString());
+				System.out.println(ex.getMessage());
+			}
+		}
 		setBlockInfo(l, json.toJSONString(), updateTicker);
 	}
 	
