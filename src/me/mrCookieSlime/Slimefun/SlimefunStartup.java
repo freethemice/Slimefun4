@@ -390,7 +390,7 @@ public class SlimefunStartup extends JavaPlugin {
 			for (Map.Entry<Block, Block> entry: ticker.move.entrySet()) {
 				SlimefunStartup.instance.myTitanHooks.deleteBackup(entry.getKey().getLocation());
 				//BlockStorage._integrated_moveBlockInfo(entry.getKey(), entry.getValue());
-				//SlimefunStartup.instance.myTitanHooks.setBackup(entry.getValue().getLocation());
+				SlimefunStartup.instance.myTitanHooks.setBackup(entry.getValue().getLocation());
 			}
 			//ticker.move.clear();
 
