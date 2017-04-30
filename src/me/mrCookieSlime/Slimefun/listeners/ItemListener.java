@@ -18,6 +18,7 @@ import me.mrCookieSlime.Slimefun.Setup.Messages;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
 import me.mrCookieSlime.Slimefun.SlimefunGuide;
 import me.mrCookieSlime.Slimefun.SlimefunStartup;
+import me.mrCookieSlime.Slimefun.TitanHooks;
 import me.mrCookieSlime.Slimefun.Variables;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
@@ -322,6 +323,10 @@ public class ItemListener implements Listener {
     public void onCraft(CraftItemEvent e) {
         for (ItemStack item: e.getInventory().getContents()) {
         	if (SlimefunItem.getByItem(item) != null && !(SlimefunItem.getByItem(item).isReplacing())) {
+				if (TitanHooks.checkItem(item))
+				{
+					break;
+				}
         		e.setCancelled(true);
         		Messages.local.sendTranslation((Player) e.getWhoClicked(), "workbench.not-enhanced", true);
         		break;

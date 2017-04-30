@@ -25,6 +25,7 @@ import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.Soul;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
+import me.mrCookieSlime.sensibletoolbox.SensibleToolboxPlugin;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -151,7 +152,14 @@ public class TitanHooks {
             backupChecker.setValue(s, null);
         }
     }
-
+    public static boolean checkItem(ItemStack item)
+    {
+        if (SensibleToolboxPlugin.getInstance().getItemRegistry().isSTBItem(item))
+        {
+            return true;
+        }
+        return false;
+    }
     public void SlimeFunShutDown()
     {
         saveBackuptoFile();
