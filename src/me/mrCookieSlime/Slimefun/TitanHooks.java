@@ -72,33 +72,33 @@ public class TitanHooks {
                 System.out.println("Slimefun is checking backups, maybe lag...");
                 //Bukkit.getServer().broadcastMessage(ChatColor.GRAY  + "Slimefun is checking backups, maybe lag...");
                 List<String> deleteme = new ArrayList<String>();
-                for(String s: backupCheck.keySet())
-                {
+                for(String s: backupCheck.keySet()) {
                     String[] e2 = s.split(",");
                     World world = Bukkit.getWorld(e2[0]);
                     double x = Double.parseDouble(e2[1]);
                     double y = Double.parseDouble(e2[2]);
                     double z = Double.parseDouble(e2[3]);
+                    if (world != null) {
+                        if (world.isChunkLoaded((int) x >> 4, (int) z >> 4)) {
+                            Location place = new Location(world, x, y, z);
+                            if (place.getChunk().isLoaded()) {
+                                if (place.getBlock().getType() == Material.AIR) {
+                                    deleteme.add(s);
+                                    continue;
+                                }
 
-                    if (world.isChunkLoaded((int)x >> 4, (int)z >> 4)) {
-                        Location place = new Location(world, x, y, z);
-                        if (place.getChunk().isLoaded()) {
-                            if (place.getBlock().getType() == Material.AIR) {
-                                deleteme.add(s);
-                                continue;
-                            }
-
-                            if (!BlockStorage.hasBlockInfo(place)) {
-                                BlockStorage.setBlockInfo(place, (String) backupCheck.get(s), true);
-
-                                System.out.println("SF --------------------> Fixed: " + s);
-                                backupLog.setValue(s, "FIXED: " + (String) backupCheck.get(s));
                                 if (!BlockStorage.hasBlockInfo(place)) {
-                                    System.out.println("SF --------------------> ERROR Fixing: " + s);
-                                    System.out.println("SF ----------------->>> " + (String) backupCheck.get(s));
-                                    backupLog.setValue(s, "ERROR: " + (String) backupCheck.get(s));
-                                    backupCheck.remove(s);
-                                    break;
+                                    BlockStorage.setBlockInfo(place, (String) backupCheck.get(s), true);
+
+                                    System.out.println("SF --------------------> Fixed: " + s);
+                                    backupLog.setValue(s, "FIXED: " + (String) backupCheck.get(s));
+                                    if (!BlockStorage.hasBlockInfo(place)) {
+                                        System.out.println("SF --------------------> ERROR Fixing: " + s);
+                                        System.out.println("SF ----------------->>> " + (String) backupCheck.get(s));
+                                        backupLog.setValue(s, "ERROR: " + (String) backupCheck.get(s));
+                                        backupCheck.remove(s);
+                                        break;
+                                    }
                                 }
                             }
                         }
