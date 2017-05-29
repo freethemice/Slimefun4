@@ -1,22 +1,15 @@
 package me.mrCookieSlime.Slimefun.listeners;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Variable;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.Item.CustomItem;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Player.PlayerInventory;
 import me.mrCookieSlime.CSCoreLibPlugin.general.String.StringUtils;
-import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import me.mrCookieSlime.Slimefun.AncientAltar.Pedestals;
 import me.mrCookieSlime.Slimefun.AncientAltar.RitualAnimation;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
 import me.mrCookieSlime.Slimefun.Setup.Messages;
+import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -36,6 +29,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.util.Vector;
 
+import java.util.*;
+
 public class AncientAltarListener implements Listener {
 
 	public AncientAltarListener(SlimefunStartup plugin) {
@@ -47,6 +42,8 @@ public class AncientAltarListener implements Listener {
 
 	@EventHandler(priority=EventPriority.HIGH)
 	public void onInteract(PlayerInteractEvent e) {
+		if (e.isCancelled())
+			return;
 		if (e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 		Block b = e.getClickedBlock();
 		SlimefunItem item = BlockStorage.check(b);

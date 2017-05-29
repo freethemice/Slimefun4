@@ -1,15 +1,10 @@
 package me.mrCookieSlime.Slimefun.listeners;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.Talisman;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
+import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
-
 import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.LivingEntity;
@@ -27,6 +22,10 @@ import org.bukkit.event.player.PlayerToggleSprintEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class TalismanListener implements Listener {
 	

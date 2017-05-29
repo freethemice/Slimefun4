@@ -2045,7 +2045,7 @@ public class SlimefunSetup {
 										}
 										else {
 											for (ItemStack drop: b.getDrops()) {
-												b.getWorld().dropItemNaturally(b.getLocation(), (b.getType().toString().endsWith("_ORE") && !b.getType().equals(Material.IRON_ORE) && !b.getType().equals(Material.GOLD_ORE)) ? new CustomItem(drop, fortune): drop);
+												b.getWorld().dropItemNaturally(b.getLocation(), (!drop.getType().isBlock()) ? new CustomItem(drop, fortune): drop);
 											}
 											b.setType(Material.AIR);
 										}
@@ -2200,7 +2200,7 @@ public class SlimefunSetup {
 
 		new SlimefunGadget(Categories.MACHINES_1, SlimefunItems.CRUCIBLE, "CRUCIBLE", RecipeType.ENHANCED_CRAFTING_TABLE,
 		new ItemStack [] {new ItemStack(Material.HARD_CLAY), null, new ItemStack(Material.HARD_CLAY), new ItemStack(Material.HARD_CLAY), null, new ItemStack(Material.HARD_CLAY), new ItemStack(Material.HARD_CLAY), new ItemStack(Material.FLINT_AND_STEEL), new ItemStack(Material.HARD_CLAY)},
-		new ItemStack [] {new ItemStack(Material.COBBLESTONE, 16), new ItemStack(Material.LAVA_BUCKET), new ItemStack(Material.LEAVES, 16), new ItemStack(Material.WATER_BUCKET), new ItemStack(Material.HARD_CLAY, 12), new ItemStack(Material.WATER_BUCKET)})
+		new ItemStack [] {new ItemStack(Material.COBBLESTONE, 16), new ItemStack(Material.LAVA_BUCKET), new ItemStack(Material.LEAVES, 16), new ItemStack(Material.WATER_BUCKET), new ItemStack(Material.HARD_CLAY, 12), new ItemStack(Material.LAVA_BUCKET)})
 		.register(true, new ItemInteractionHandler() {
 
 			@Override
@@ -2213,6 +2213,7 @@ public class SlimefunSetup {
 						for (ItemStack convert: RecipeType.getRecipeInputs(machine)) {
 							if (input != null) {
 								if (SlimefunManager.isItemSimiliar(input, convert, true)) {
+									e.setCancelled(true);
 									ItemStack removing = input.clone();
 									removing.setAmount(convert.getAmount());
 									p.getInventory().removeItem(removing);
@@ -2221,7 +2222,7 @@ public class SlimefunSetup {
 
 										@Override
 										public void run() {
-											if (input.getType() == Material.COBBLESTONE) {
+											if (input.getType() == Material.COBBLESTONE || input.getType() == Material.HARD_CLAY) {
 												block.setType(Material.LAVA);
 												block.setData((byte) 7);
 												block.getWorld().playSound(block.getLocation(), Sound.BLOCK_LAVA_POP, 1F, 1F);
@@ -2235,7 +2236,7 @@ public class SlimefunSetup {
 
 												@Override
 												public void run() {
-													if (input.getType() == Material.COBBLESTONE) {
+													if (input.getType() == Material.COBBLESTONE || input.getType() == Material.HARD_CLAY) {
 														block.setType(Material.LAVA);
 														block.setData((byte) 6);
 														block.getWorld().playSound(block.getLocation(), Sound.BLOCK_LAVA_POP, 1F, 1F);
@@ -2249,7 +2250,7 @@ public class SlimefunSetup {
 
 														@Override
 														public void run() {
-															if (input.getType() == Material.COBBLESTONE) {
+															if (input.getType() == Material.COBBLESTONE || input.getType() == Material.HARD_CLAY) {
 																block.setType(Material.LAVA);
 																block.setData((byte) 5);
 																block.getWorld().playSound(block.getLocation(), Sound.BLOCK_LAVA_POP, 1F, 1F);
@@ -2263,7 +2264,7 @@ public class SlimefunSetup {
 
 																@Override
 																public void run() {
-																	if (input.getType() == Material.COBBLESTONE) {
+																	if (input.getType() == Material.COBBLESTONE || input.getType() == Material.HARD_CLAY) {
 																		block.setType(Material.LAVA);
 																		block.setData((byte) 4);
 																		block.getWorld().playSound(block.getLocation(), Sound.BLOCK_LAVA_POP, 1F, 1F);
@@ -2277,7 +2278,7 @@ public class SlimefunSetup {
 
 																		@Override
 																		public void run() {
-																			if (input.getType() == Material.COBBLESTONE) {
+																			if (input.getType() == Material.COBBLESTONE || input.getType() == Material.HARD_CLAY) {
 																				block.setType(Material.LAVA);
 																				block.setData((byte) 3);
 																				block.getWorld().playSound(block.getLocation(), Sound.BLOCK_LAVA_POP, 1F, 1F);
@@ -2291,7 +2292,7 @@ public class SlimefunSetup {
 
 																				@Override
 																				public void run() {
-																					if (input.getType() == Material.COBBLESTONE) {
+																					if (input.getType() == Material.COBBLESTONE || input.getType() == Material.HARD_CLAY) {
 																						block.setType(Material.LAVA);
 																						block.setData((byte) 2);
 																						block.getWorld().playSound(block.getLocation(), Sound.BLOCK_LAVA_POP, 1F, 1F);
@@ -2305,7 +2306,7 @@ public class SlimefunSetup {
 
 																						@Override
 																						public void run() {
-																							if (input.getType() == Material.COBBLESTONE) {
+																							if (input.getType() == Material.COBBLESTONE || input.getType() == Material.HARD_CLAY) {
 																								block.setType(Material.LAVA);
 																								block.setData((byte) 1);
 																								block.getWorld().playSound(block.getLocation(), Sound.BLOCK_LAVA_POP, 1F, 1F);
@@ -2319,7 +2320,7 @@ public class SlimefunSetup {
 
 																								@Override
 																								public void run() {
-																									if (input.getType() == Material.COBBLESTONE) {
+																									if (input.getType() == Material.COBBLESTONE || input.getType() == Material.HARD_CLAY) {
 																										block.setType(Material.STATIONARY_LAVA);
 																										block.setData((byte) 0);
 																										block.getWorld().playSound(block.getLocation(), Sound.BLOCK_LAVA_POP, 1F, 1F);
@@ -2491,16 +2492,18 @@ public class SlimefunSetup {
 
 			@Override
 			public boolean onBlockBreak(BlockBreakEvent e, ItemStack item, int fortune, List<ItemStack> drops) {
-				if (SlimefunManager.isItemSimiliar(e.getPlayer().getItemInHand(), SlimefunItems.PICKAXE_OF_VEIN_MINING, true) && e.getBlock().getType().toString().endsWith("_ORE")) {
-					List<Location> blocks = new ArrayList<Location>();
-					Vein.calculate(e.getBlock().getLocation(), e.getBlock().getLocation(), blocks, 32);
-					for (Location block: blocks) {
-						Block b = block.getBlock();
-						b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType());
-						for (ItemStack drop: b.getDrops()) {
-							b.getWorld().dropItemNaturally(b.getLocation(), b.getType().toString().endsWith("_ORE") ? new CustomItem(drop, fortune): drop);
+				if (SlimefunManager.isItemSimiliar(e.getPlayer().getItemInHand(), SlimefunItems.PICKAXE_OF_VEIN_MINING, true)) {
+					if (e.getBlock().getType().toString().endsWith("_ORE")) {
+						List<Location> blocks = new ArrayList<Location>();
+						Vein.calculate(e.getBlock().getLocation(), e.getBlock().getLocation(), blocks, 16);
+						for (Location block: blocks) {
+							Block b = block.getBlock();
+							b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType());
+							for (ItemStack drop: b.getDrops()) {
+								b.getWorld().dropItemNaturally(b.getLocation(), drop.getType().isBlock() ? drop: new CustomItem(drop, fortune));
+							}
+							b.setType(Material.AIR);
 						}
-						b.setType(Material.AIR);
 					}
 					return true;
 				}
@@ -2960,7 +2963,7 @@ public class SlimefunSetup {
 		new ItemStack[] {new ItemStack(Material.ICE), new ItemStack(Material.ICE), new ItemStack(Material.ICE), SlimefunItems.ALUMINUM_INGOT, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.ALUMINUM_INGOT, new ItemStack(Material.ICE), new ItemStack(Material.ICE), new ItemStack(Material.ICE)})
 		.register(true);
 
-		new SlimefunItem(Categories.PORTABLE, SlimefunItems.COOLER, "COOLER", RecipeType.ENHANCED_CRAFTING_TABLE,
+		new SlimefunBackpack(27, Categories.PORTABLE, SlimefunItems.COOLER, "COOLER", RecipeType.ENHANCED_CRAFTING_TABLE,
 		new ItemStack[] {SlimefunItems.CLOTH, SlimefunItems.CLOTH, SlimefunItems.CLOTH, SlimefunItems.ALUMINUM_INGOT, SlimefunItems.COOLING_UNIT, SlimefunItems.ALUMINUM_INGOT, SlimefunItems.ALUMINUM_INGOT, SlimefunItems.ALUMINUM_INGOT, SlimefunItems.ALUMINUM_INGOT})
 		.register(true);
 
