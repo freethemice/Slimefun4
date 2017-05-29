@@ -75,6 +75,11 @@ public class TickerTask implements Runnable {
 
 				blocks:
 				for (final Block b: BlockStorage.getTickingBlocks(c)) {
+					if (SlimefunStartup.instance.myTitanHooks.checkforError(b))
+					{
+						System.out.println("TickerTask, Saved.....");
+						continue ;
+					}
 					if (b.getChunk().isLoaded()) {
 						final Location l = b.getLocation();
 						final SlimefunItem item = BlockStorage.check(l);

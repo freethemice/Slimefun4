@@ -133,17 +133,43 @@ public class TitanHooks {
             }
         }, 300, 1000);
     }
-    public void safeDeleteBlocks() {
-        Map<Location, Boolean> remove = new HashMap<Location, Boolean>(SlimefunStartup.ticker.delete);
+    public boolean checkforError(final Block b)
+    {
+        try
+        {
+            if (b.getChunk().isLoaded())
+            {
 
-        for (Map.Entry<Location, Boolean> entry: remove.entrySet()) {
-            if (entry.getKey().getChunk().isLoaded()) {
-                if (entry.getKey().getBlock().getType() == Material.AIR) {
-                    BlockStorage._integrated_removeBlockInfo(entry.getKey(), entry.getValue());
-                    SlimefunStartup.instance.myTitanHooks.deleteBackup(entry.getKey());
+            }
+            return false;
+        }
+        catch (Exception e)
+        {
+            return  true;
+        }
+    }
+    public void safeDeleteBlocks() {
+        try {
+            Map<Location, Boolean> remove = new HashMap<Location, Boolean>(SlimefunStartup.ticker.delete);
+
+            for (Map.Entry<Location, Boolean> entry : remove.entrySet()) {
+
+                if (entry.getKey() != null) {
+                    if (entry.getKey().getChunk() != null) {
+                        if (entry.getKey().getChunk().isLoaded()) {
+                            if (entry.getKey().getBlock().getType() == Material.AIR) {
+                                BlockStorage._integrated_removeBlockInfo(entry.getKey(), entry.getValue());
+                                SlimefunStartup.instance.myTitanHooks.deleteBackup(entry.getKey());
+                            }
+                        }
+                        SlimefunStartup.ticker.delete.remove(entry.getKey());
+                    }
                 }
             }
-            SlimefunStartup.ticker.delete.remove(entry.getKey());
+        }
+        catch (Exception e)
+        {
+            System.out.println("safeDeleteBlocks Error!!!!");
         }
     }
     public void clearBackupfromFile() {
@@ -294,34 +320,25 @@ public class TitanHooks {
     public void open(BlockMenu bm){
         bm.changes++;
     }
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
-    {
-        int processing = 0;
-        for(int i = 0; i<this.allMachines.size();i++)
-        {
-            AContainer thisMachine =  this.allMachines.get(i);
-            Set<Block> toEnd = thisMachine.processing.keySet();
-            for(Block e:toEnd)
-            {
-                processing++;
-            }
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        try {
+            if (args.length > 0) {
+                if (args[0].equalsIgnoreCase("save")) {
+                    if (sender.hasPermission("slimefun.cheat.items")) {
+                        SlimefunStartup.instance.Saver.run();
+                        sender.sendMessage("Slimefun saving...");
 
+                        return true;
 
-        }
-
-        processing = processing / 4;
-        if (args.length > 0) {
-            if (args[0].equalsIgnoreCase("save")) {
-                if (sender.hasPermission("slimefun.cheat.items")) {
-                    SlimefunStartup.instance.Saver.run();
-                    sender.sendMessage("Slimefun saving... Processing:" + processing);
-
-                    return true;
-
+                    }
                 }
             }
+            return false;
         }
-        return false;
+        catch (Exception e)
+        {
+            return false;
+        }
     }
     public int compare(BlockMenu menu, Integer slot1, Integer slot2) {
         int Amtslot1 =999;
