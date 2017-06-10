@@ -78,7 +78,7 @@ public class SlimefunStartup extends JavaPlugin {
 	public TitanHooks myTitanHooks;
 	public AutoSavingTask Saver;
 	// Supported Versions of Minecraft
-	final String[] supported = {"v1_9_", "v1_10_", "v1_11_", "PluginBukkitBridge"};
+	final String[] supported = {"v1_9_", "v1_10_", "v1_11_", "v1_12_", "PluginBukkitBridge"};
 
 
 	@SuppressWarnings("deprecation")
