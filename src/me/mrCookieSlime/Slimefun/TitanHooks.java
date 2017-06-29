@@ -1,6 +1,8 @@
 package me.mrCookieSlime.Slimefun;
 
 
+import me.badbones69.crazyenchantments.api.CEnchantments;
+import me.badbones69.crazyenchantments.api.CrazyEnchantments;
 import me.badbones69.crazyenchantments.api.EnchantmentType;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.InvUtils;
@@ -423,10 +425,18 @@ public class TitanHooks {
                             if (lorlore.size() > 3) {
                                 make = false;
                                 CE = true;
+
                                 EnchantmentType type =  EnchantmentType.getFromName(ChatColor.stripColor(lorlore.get(2)).replace(" Only", "").toLowerCase());
                                 if (type == null)
                                 {
                                     type =  EnchantmentType.getFromName(ChatColor.stripColor(lorlore.get(2)).replace("s Only", "").toLowerCase());
+                                }
+                                if (type == null)
+                                {
+                                    if (ChatColor.stripColor(lorlore.get(2)).contains("All Armor, Weapons, Tools"))
+                                    {
+                                        type = EnchantmentType.ALL;
+                                    }
                                 }
                                 if (type != null) {
                                     List<Material> typeMats = (List<Material>) type.getItems().clone();
@@ -438,6 +448,7 @@ public class TitanHooks {
                                                 for (int i = 0; i < targetLore.size(); i++) {
                                                     String[] getRo = targetLore.get(i).split(" ");
                                                     if (getRo.length > 1) {
+
                                                         if (getRo[0].equals(ChatColor.AQUA + "Titan." + lorlore.get(0))) {
                                                             OldPower = getRo[1];
                                                             int NumberR = fromRoman(getRo[1]);
@@ -463,6 +474,15 @@ public class TitanHooks {
                                         }
                                         if (CE)
                                         {
+                                            //me.badbones69.crazyenchantments.api.CrazyEnchantments.getInstance().getMaxPower()
+                                            CEnchantments cEncant = CEnchantments.valueOf(lorlore.get(i).toUpperCase());
+                                            int maxPower = CrazyEnchantments.getInstance().getMaxPower(cEncant);
+                                            //System.out.print(cEncant.getCustomName() + "," + maxPower + "," + Power);
+                                            if (fromRoman(Power) > maxPower)
+                                            {
+                                                Power = toRoman(maxPower);
+                                            }
+                                            //System.out.print(cEncant.getCustomName() + "," + maxPower + "," + Power);
                                             Oldname = lorlore.get(i);
                                             lore.add(ChatColor.AQUA + "Titan." + lorlore.get(i) + " " + Power);
                                         }
