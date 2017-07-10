@@ -1,24 +1,23 @@
 package me.mrCookieSlime.Slimefun.Objects;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
-
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Variable;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Particles.FireworkShow;
-import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import me.mrCookieSlime.Slimefun.Events.ResearchUnlockEvent;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
 import me.mrCookieSlime.Slimefun.Setup.Messages;
-
+import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
 
 public class Research {
 	
@@ -92,7 +91,7 @@ public class Research {
 					cfg.setValue("researches." + research, true);
 					cfg.save();
 					Messages.local.sendTranslation(p, "messages.unlocked", true, new Variable("%research%", getName()));
-					FireworkShow.launchRandom(p, 1);
+					if(SlimefunStartup.getCfg().getBoolean("options.research-give-fireworks")) FireworkShow.launchRandom(p, 1);
 				}
 				else if (!researching.contains(p.getUniqueId())){
 					researching.add(p.getUniqueId());
@@ -129,7 +128,7 @@ public class Research {
 															cfg.setValue("researches." + research, true);
 															cfg.save();
 															Messages.local.sendTranslation(p, "messages.unlocked", true, new Variable("%research%", getName()));
-															FireworkShow.launchRandom(p, 1);
+															if(SlimefunStartup.getCfg().getBoolean("options.research-unlock-fireworks")) FireworkShow.launchRandom(p, 1);
 															researching.remove(p.getUniqueId());
 														}
 													}, 20L);
