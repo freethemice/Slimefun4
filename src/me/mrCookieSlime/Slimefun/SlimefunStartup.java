@@ -14,6 +14,7 @@ import me.mrCookieSlime.Slimefun.GEO.Resources.OilResource;
 import me.mrCookieSlime.Slimefun.GPS.Elevator;
 import me.mrCookieSlime.Slimefun.GitHub.GitHubConnector;
 import me.mrCookieSlime.Slimefun.GitHub.GitHubSetup;
+import me.mrCookieSlime.Slimefun.Hashing.ItemHash;
 import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
 import me.mrCookieSlime.Slimefun.Objects.MultiBlock;
 import me.mrCookieSlime.Slimefun.Objects.Research;
@@ -78,7 +79,8 @@ public class SlimefunStartup extends JavaPlugin {
 	public TitanHooks myTitanHooks;
 	public AutoSavingTask Saver;
 	// Supported Versions of Minecraft
-	final String[] supported = {"v1_9_", "v1_10_", "v1_11_", "v1_12_", "PluginBukkitBridge"};
+	//final String[] supported = {"v1_9_", "v1_10_", "v1_11_", "v1_12_", "PluginBukkitBridge"};
+	final String[] supported = {"v1_9_", "v1_10_", "v1_11_", "v1_12_"};
 
 
 	@SuppressWarnings("deprecation")
@@ -88,29 +90,40 @@ public class SlimefunStartup extends JavaPlugin {
 		CSCoreLibLoader loader = new CSCoreLibLoader(this);
 		if (loader.load()) {
 
-			boolean compatibleVersion = false;
+			String currentVersion = ReflectionUtils.getVersion();
 
-			for (String version: supported) {
-				if (ReflectionUtils.getVersion().startsWith(version)) {
-					compatibleVersion = true;
-					break;
+			if (currentVersion.startsWith("v")) {
+				boolean compatibleVersion = false;
+				StringBuilder versions = new StringBuilder();
+
+				int i = 0;
+				for (String version: supported) {
+					if (currentVersion.startsWith(version)) {
+						compatibleVersion = true;
+					}
+
+					if (i == 0) versions.append(version.substring(1).replaceFirst("_", ".").replace("_", ".X"));
+					else if (i == supported.length - 1) versions.append(" or " + version.substring(1).replaceFirst("_", ".").replace("_", ".X"));
+					else versions.append(", " + version.substring(1).replaceFirst("_", ".").replace("_", ".X"));
+
+					i++;
 				}
-			}
 
-			// Looks like you are using an unsupported Minecraft Version
-			if (!compatibleVersion) {
-				System.err.println("### Slimefun failed to load!");
-				System.err.println("###");
-				System.err.println("### You are using the wrong Version of Minecraft!!!");
-				System.err.println("###");
-				System.err.println("### You are using Minecraft " + ReflectionUtils.getVersion());
-				System.err.println("### but Slimefun v" + getDescription().getVersion() + " requires you to be using");
-				System.err.println("### Minecraft 1.9.X or 1.10.X");
-				System.err.println("###");
-				System.err.println("### Please use an older Version of Slimefun and disable auto-updating");
-				System.err.println("### or consider updating your Server Software.");
-				getServer().getPluginManager().disablePlugin(this);
-				return;
+				// Looks like you are using an unsupported Minecraft Version
+				if (!compatibleVersion) {
+					System.err.println("### Slimefun failed to load!");
+					System.err.println("###");
+					System.err.println("### You are using the wrong Version of Minecraft!!!");
+					System.err.println("###");
+					System.err.println("### You are using Minecraft " + ReflectionUtils.getVersion());
+					System.err.println("### but Slimefun v" + getDescription().getVersion() + " requires you to be using");
+					System.err.println("### Minecraft " + versions.toString());
+					System.err.println("###");
+					System.err.println("### Please use an older Version of Slimefun and disable auto-updating");
+					System.err.println("### or consider updating your Server Software.");
+					getServer().getPluginManager().disablePlugin(this);
+					return;
+				}
 			}
 
 			instance = this;
@@ -368,7 +381,7 @@ public class SlimefunStartup extends JavaPlugin {
 			if (coreProtect) coreProtectAPI = ((CoreProtect)getServer().getPluginManager().getPlugin("CoreProtect")).getAPI();
 
 
-			SlimefunGuide.creative_research = config.getBoolean("options.allow-free-creative-research");
+			Research.creative_research = config.getBoolean("options.allow-free-creative-research");
 
 			AutoEnchanter.max_emerald_enchantments = config.getInt("options.emerald-enchantment-limit");
 
@@ -413,6 +426,7 @@ public class SlimefunStartup extends JavaPlugin {
 		{
 
 		}
+		// Prevent Memory Leaks
 		config = null;
 		researches = null;
 		items = null;
@@ -470,6 +484,8 @@ public class SlimefunStartup extends JavaPlugin {
 		SlimefunGuide.contributors = null;
 		GitHubConnector.connectors = null;
 		ChestManipulator.listeners = null;
+		ItemHash.digest = null;
+		ItemHash.map = null;
 
 		for (Player p: Bukkit.getOnlinePlayers()) {
 			p.closeInventory();

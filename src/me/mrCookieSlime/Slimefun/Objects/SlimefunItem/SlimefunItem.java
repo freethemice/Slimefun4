@@ -48,14 +48,23 @@ public class SlimefunItem {
 	String[] keys;
 	Object[] values;
 	Research research;
-	boolean ghost, replacing, disenchantable;
+	boolean ghost, replacing, enchantable, disenchantable;
 	Set<ItemHandler> itemhandlers;
 	boolean addon = false;
 	URID urid;
 	boolean ticking = false;
 	BlockTicker ticker;
 	EnergyTicker energy;
-	
+	public String hash;
+	State state;
+
+	public enum State {
+		ENABLED,
+		DISABLED,
+		VANILLA;
+	}
+
+
 	int month = -1;
 	
 	public int getMonth() {
@@ -71,7 +80,7 @@ public class SlimefunItem {
 	public String[] listKeys()			{		return this.keys;			}
 	public Object[] listValues()		{		return this.values;			}
 	public Research getResearch()		{		return this.research;		}
-	
+
 	public Set<ItemHandler> getHandlers() {
 		return itemhandlers;
 	}
@@ -88,6 +97,7 @@ public class SlimefunItem {
 		this.ghost = false;
 		this.replacing = false;
 		this.disenchantable = true;
+		this.enchantable = true;
 
 		itemhandlers = new HashSet<ItemHandler>();
 		
@@ -106,6 +116,8 @@ public class SlimefunItem {
 		this.ghost = false;
 		this.replacing = false;
 		this.disenchantable = true;
+		this.enchantable = true;
+
 		itemhandlers = new HashSet<ItemHandler>();
 		
 		urid = URID.nextURID(this, false);
@@ -122,6 +134,7 @@ public class SlimefunItem {
 		this.values = values;
 		this.ghost = false;
 		this.replacing = false;
+		this.enchantable = true;
 		this.disenchantable = true;
 		itemhandlers = new HashSet<ItemHandler>();
 		
@@ -139,6 +152,7 @@ public class SlimefunItem {
 		this.values = values;
 		this.ghost = false;
 		this.replacing = false;
+		this.enchantable = true;
 		this.disenchantable = true;
 		itemhandlers = new HashSet<ItemHandler>();
 		
@@ -157,6 +171,7 @@ public class SlimefunItem {
 		this.ghost = ghost;
 		this.replacing = false;
 		this.disenchantable = true;
+		this.enchantable = true;
 		itemhandlers = new HashSet<ItemHandler>();
 		
 		urid = URID.nextURID(this, false);
@@ -174,6 +189,7 @@ public class SlimefunItem {
 			
 			SlimefunStartup.getItemCfg().setDefaultValue(this.name + ".enabled", true);
 			SlimefunStartup.getItemCfg().setDefaultValue(this.name + ".can-be-used-in-workbenches", this.replacing);
+			SlimefunStartup.getItemCfg().setDefaultValue(this.name + ".allow-enchanting", this.enchantable);
 			SlimefunStartup.getItemCfg().setDefaultValue(this.name + ".allow-disenchanting", this.disenchantable);
 			SlimefunStartup.getItemCfg().setDefaultValue(this.name + ".required-permission", "");
 			if (this.keys != null && this.values != null) {
@@ -188,11 +204,16 @@ public class SlimefunItem {
 			}
 			
 			if (this.isTicking() && !SlimefunStartup.getCfg().getBoolean("URID.enable-tickers")) {
-				
+				this.state = State.DISABLED;
+				return;
 			}
-			else if (SlimefunStartup.getItemCfg().getBoolean(this.name + ".enabled")) {
+			if (SlimefunStartup.getItemCfg().getBoolean(this.name + ".enabled")) {
 				if (!Category.list().contains(category)) category.register();
+
+				this.state = State.ENABLED;
+
 				this.replacing = SlimefunStartup.getItemCfg().getBoolean(this.name + ".can-be-used-in-workbenches");
+				this.enchantable = SlimefunStartup.getItemCfg().getBoolean(this.name + ".allow-enchanting");
 				this.disenchantable = SlimefunStartup.getItemCfg().getBoolean(this.name + ".allow-disenchanting");
 				items.add(this);
 				if (slimefun) vanilla++;
@@ -205,6 +226,10 @@ public class SlimefunItem {
 				}
 				
 				if (SlimefunStartup.getCfg().getBoolean("options.print-out-loading")) System.out.println("[Slimefun] Loaded Item \"" + this.getName() + "\"");
+			} else {
+				if (this instanceof VanillaItem) this.state = State.VANILLA;
+				else this.state = State.DISABLED;
+
 			}
 		} catch(Exception x) {
 			System.err.println("[Slimefun] Item Registration failed: " + this.name);
@@ -216,7 +241,7 @@ public class SlimefunItem {
 	}
 	
 	public void bindToResearch(Research r) {
-		if (r != null) r.items.add(this);
+		if (r != null) r.getEffectedItems().add(this);
 		this.research = r;
 	}
 	
@@ -293,26 +318,38 @@ public class SlimefunItem {
 			System.err.println("[Slimefun] Item Initialization failed: " + this.name);
 		}
 	}
-	
-	public static boolean isDisabled(ItemStack item) {
-		boolean contains1 = false;
-		boolean contains2 = false;
-		
+
+	public boolean isEnchantable() {
+		return enchantable;
+	}
+
+	public static State getState(ItemStack item) {
 		for (SlimefunItem i: all) {
 			if (i.isItem(item)) {
-				contains1 = true;
-				break;
+				return i.getState();
 			}
 		}
-		
-		for (SlimefunItem i: items) {
+		return State.ENABLED;
+	}
+
+
+	public static boolean isDisabled(ItemStack item) {
+		for (SlimefunItem i: all) {
 			if (i.isItem(item)) {
-				contains2 = true;
-				break;
+				return i.isDisabled();
 			}
 		}
-		
-		return contains1 && !contains2;
+
+		return false;
+	}
+
+	public State getState(){
+		return state;
+	}
+
+	public boolean isDisabled(){
+		return state != State.ENABLED;
+
 	}
 	
 	public void install() {}

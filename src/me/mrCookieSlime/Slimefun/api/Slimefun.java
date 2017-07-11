@@ -16,6 +16,7 @@ import me.mrCookieSlime.Slimefun.Setup.Messages;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem.State;
 
 public class Slimefun {
 	
@@ -59,9 +60,10 @@ public class Slimefun {
 	
 	public static boolean hasUnlocked(Player p, ItemStack item, boolean message) {
 		SlimefunItem sfItem = SlimefunItem.getByItem(item);
+		State state = SlimefunItem.getState(item);
 		if (sfItem == null) {
-			if (SlimefunItem.isDisabled(item)) {
-				if (message) Messages.local.sendTranslation(p, "messages.disabled-item", true);
+			if (state != State.ENABLED) {
+				if (message && state != State.VANILLA) Messages.local.sendTranslation(p, "messages.disabled-item", true);
 				return false;
 			}
 			else return true;

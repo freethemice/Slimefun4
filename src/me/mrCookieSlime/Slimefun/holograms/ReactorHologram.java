@@ -7,6 +7,7 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 
 import me.mrCookieSlime.Slimefun.SlimefunStartup;
+import me.mrCookieSlime.CSCoreLibPlugin.general.World.ArmorStandFactory;
 
 
 public class ReactorHologram {

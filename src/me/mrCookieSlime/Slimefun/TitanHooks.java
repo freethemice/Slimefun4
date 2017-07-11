@@ -407,7 +407,14 @@ public class TitanHooks {
             slots:
             for (int slot: AE.getInputSlots()) {
                 ItemStack target = BlockStorage.getInventory(b).getItemInSlot(slot == AE.getInputSlots()[0] ? AE.getInputSlots()[1]: AE.getInputSlots()[0]);
+                // Check if enchantable
+                SlimefunItem sfTarget = SlimefunItem.getByItem(target);
+                if(sfTarget != null && !sfTarget.isEnchantable()) return;
+
                 ItemStack item = BlockStorage.getInventory(b).getItemInSlot(slot);
+
+                // Enchant
+
                 List<String> lore = null;
                 if (item != null && item.getType() == Material.ENCHANTED_BOOK && target != null) {
                     Map<Enchantment, Integer> enchantments = new HashMap<Enchantment, Integer>();
@@ -619,7 +626,13 @@ public class TitanHooks {
             for (int slot: AD.getInputSlots()) {
                 ItemStack target = BlockStorage.getInventory(b).getItemInSlot(slot == AD.getInputSlots()[0] ? AD.getInputSlots()[1]: AD.getInputSlots()[0]);
                 ItemStack item = BlockStorage.getInventory(b).getItemInSlot(slot);
-                if(SlimefunItem.getByItem(item) != null && !SlimefunItem.getByItem(item).isDisenchantable()) return;
+
+                // Check if disenchantable
+                SlimefunItem sfItem = SlimefunItem.getByItem(item);
+                if (sfItem != null && !sfItem.isDisenchantable()) return;
+
+                // Disenchant
+
                 if (item != null && target != null && target.getType() == Material.BOOK) {
                     int amount = 0;
 
