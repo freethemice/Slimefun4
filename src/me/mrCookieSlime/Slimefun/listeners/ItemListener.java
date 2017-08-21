@@ -147,7 +147,7 @@ public class ItemListener implements Listener {
 		ItemStack item = e.getItem();
 		if (SlimefunManager.isItemSimiliar(item, SlimefunGuide.getItem(BookDesign.BOOK), true)) {
 			if (p.isSneaking()) SlimefunGuide.openSettings(p, item);
-			else SlimefunGuide.openGuide(p, false);
+			else SlimefunGuide.openGuide(p, true);
 		}
 		else if (SlimefunManager.isItemSimiliar(item, SlimefunGuide.getItem(BookDesign.CHEST), true)) {
 			if (p.isSneaking()) SlimefunGuide.openSettings(p, item);
