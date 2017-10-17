@@ -2,6 +2,7 @@ package me.mrCookieSlime.Slimefun.GitHub;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import me.mrCookieSlime.Slimefun.SlimefunStartup;
 
 import java.io.*;
 import java.net.URL;
@@ -29,7 +30,7 @@ public abstract class GitHubConnector {
 	public abstract void onFailure();
 	
 	public void pullFile() {
-		System.out.println("[Slimefun - GitHub] Retrieving '" + this.getFileName() + ".json' from GitHub...");
+		if (SlimefunStartup.getCfg().getBoolean("options.print-out-github-data-retrieving")) System.out.println("[Slimefun - GitHub] Retrieving '" + this.getFileName() + ".json' from GitHub...");
 		
 		try {
 			URL website = new URL("https://api.github.com/repos/" + this.getRepository() + this.getURLSuffix());
@@ -45,7 +46,7 @@ public abstract class GitHubConnector {
 			fos.close();
 			this.parseData();
 		} catch (IOException e) {
-			System.err.println("[Slimefun - GitHub] ERROR - Could not connect to GitHub in time.");
+			if (SlimefunStartup.getCfg().getBoolean("options.print-out-github-data-retrieving")) System.err.println("[Slimefun - GitHub] ERROR - Could not connect to GitHub in time.");
 			
 			if (hasData()) {
 				this.parseData();

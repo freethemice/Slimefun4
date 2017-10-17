@@ -1,14 +1,14 @@
 package me.mrCookieSlime.Slimefun.api.inventory;
 
-import java.io.File;
-
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
-
 import org.bukkit.block.Block;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import java.io.File;
+import java.util.ArrayList;
 
 public class UniversalBlockMenu extends ChestMenu {
 	
@@ -89,7 +89,7 @@ public class UniversalBlockMenu extends ChestMenu {
 	}
 	
 	public void close() {
-		for (HumanEntity human: toInventory().getViewers()) {
+		for(HumanEntity human: new ArrayList<>(toInventory().getViewers())) {
 			human.closeInventory();
 		}
 	}

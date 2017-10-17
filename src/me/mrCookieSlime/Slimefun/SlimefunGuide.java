@@ -648,7 +648,7 @@ public class SlimefunGuide {
 				if (Slimefun.hasPermission(p, item, false)) {
 					if (Slimefun.isEnabled(p, item, false)) {
 						if (survival && !Slimefun.hasUnlocked(p, item, false) && item.getResearch() != null) {
-							Research research = item.getResearch();
+							final Research research = item.getResearch();
 
 							texts.add(shorten("&7", StringUtils.formatItemName(item.getItem(), false)));
 							tooltips.add(StringUtils.formatItemName(item.getItem(), false) + "\n&c&lLOCKED\n\n&7Cost: " + (p.getLevel() >= research.getCost() ? "&b": "&4") + research.getCost() + " Levels\n\n&a> Click to unlock");
@@ -656,34 +656,37 @@ public class SlimefunGuide {
 
 								@Override
 								public void run(final Player p) {
-									if (research.canUnlock(p)) {
-										p.setLevel(p.getLevel() - research.getCost());
-
-										if (research.hasUnlocked(p)) openCategory(p, category, true, selected_page, experimental);
-										else if (!Research.isResearching(p)) {
-											if (p.getGameMode() == GameMode.CREATIVE) {
-												research.unlock(p, true);
-												Bukkit.getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {
-
-													@Override
-													public void run() {
-														openCategory(p, category, survival, selected_page, experimental);
-													}
-												}, 1L);
-											}
+									if (!Research.isResearching(p)) {
+										if (research.canUnlock(p)) {
+											if (research.hasUnlocked(p))
+												openCategory(p, category, true, selected_page, experimental);
 											else {
-												research.unlock(p, false);
-												Bukkit.getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {
+												if (!(p.getGameMode() == GameMode.CREATIVE && Research.creative_research)) {
+													p.setLevel(p.getLevel() - research.getCost());
+												}
 
-													@Override
-													public void run() {
-														openCategory(p, category, survival, selected_page, experimental);
-													}
-												}, 103L);
+												if (p.getGameMode() == GameMode.CREATIVE) {
+													research.unlock(p, true);
+													Bukkit.getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {
+
+														@Override
+														public void run() {
+															openCategory(p, category, survival, selected_page, experimental);
+														}
+													}, 1L);
+												} else {
+													research.unlock(p, false);
+													Bukkit.getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {
+
+														@Override
+														public void run() {
+															openCategory(p, category, survival, selected_page, experimental);
+														}
+													}, 103L);
+												}
 											}
-										}
+										} else Messages.local.sendTranslation(p, "messages.not-enough-xp", true);
 									}
-									else Messages.local.sendTranslation(p, "messages.not-enough-xp", true);
 								}
 							});
 						}
@@ -837,36 +840,37 @@ public class SlimefunGuide {
 				if (Slimefun.isEnabled(p, sfitem, false)) {
 					if (survival && !Slimefun.hasUnlocked(p, sfitem.getItem(), false) && sfitem.getResearch() != null) {
 						if (Slimefun.hasPermission(p, sfitem, false)) {
-							Research research = sfitem.getResearch();
+							final Research research = sfitem.getResearch();
 							menu.addItem(index, new CustomItem(Material.BARRIER, "&r" + StringUtils.formatItemName(sfitem.getItem(), false), 0, new String[] {"&4&lLOCKED", "", "&a> Click to unlock", "", "&7Cost: &b" + research.getCost() + " Level"}));
 							menu.addMenuClickHandler(index, new MenuClickHandler() {
 
 								@Override
 								public boolean onClick(final Player p, int slot, ItemStack item, ClickAction action) {
-									if (research.canUnlock(p)) {
-										if (!(p.getGameMode() == GameMode.CREATIVE && Research.creative_research)) {
-											p.setLevel(p.getLevel() - research.getCost());
-										}
-
-										if (research.hasUnlocked(p)) openCategory(p, category, true, selected_page, experimental);
-										else if (!Research.isResearching(p)) {
-											if (p.getGameMode() == GameMode.CREATIVE) {
-												research.unlock(p, Research.creative_research);
-												openCategory(p, category, survival, selected_page, experimental);
-											}
+									if (!Research.isResearching(p)) {
+										if (research.canUnlock(p)) {
+											if (research.hasUnlocked(p))
+												openCategory(p, category, true, selected_page, experimental);
 											else {
-												research.unlock(p, false);
-												Bukkit.getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {
+												if (!(p.getGameMode() == GameMode.CREATIVE && Research.creative_research)) {
+													p.setLevel(p.getLevel() - research.getCost());
+												}
 
-													@Override
-													public void run() {
-														openCategory(p, category, survival, selected_page, experimental);
-													}
-												}, 103L);
+												if (p.getGameMode() == GameMode.CREATIVE) {
+													research.unlock(p, Research.creative_research);
+													openCategory(p, category, survival, selected_page, experimental);
+												} else {
+													research.unlock(p, false);
+													Bukkit.getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {
+
+														@Override
+														public void run() {
+															openCategory(p, category, survival, selected_page, experimental);
+														}
+													}, 103L);
+												}
 											}
-										}
+										} else Messages.local.sendTranslation(p, "messages.not-enough-xp", true);
 									}
-									else Messages.local.sendTranslation(p, "messages.not-enough-xp", true);
 									return false;
 								}
 							});

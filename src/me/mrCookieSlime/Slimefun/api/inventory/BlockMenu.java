@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
-import java.util.Iterator;
+import java.util.ArrayList;
 
 public class BlockMenu extends ChestMenu {
 	
@@ -127,9 +127,7 @@ public class BlockMenu extends ChestMenu {
 
 
 	public void close() {
-		Iterator<HumanEntity> iterator = toInventory().getViewers().iterator();
-		while (iterator.hasNext()) {
-			HumanEntity human = iterator.next();
+		for(HumanEntity human: new ArrayList<>(toInventory().getViewers())) {
 			human.closeInventory();
 		}
 	}

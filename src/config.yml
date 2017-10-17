@@ -11,6 +11,7 @@ options:
   emerald-enchantment-limit: 2
   research-unlock-fireworks: true
   research-give-fireworks: true
+  print-out-github-data-retrieving: false
 guide:
   default-view-book: false
 URID:

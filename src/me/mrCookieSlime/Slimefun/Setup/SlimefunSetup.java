@@ -2632,6 +2632,7 @@ public class SlimefunSetup {
 					}
 					if (type != null) {
 						((CreatureSpawner) e.getBlock().getState()).setSpawnedType(type);
+						e.getBlock().getState().update(true, false);
 					}
 					return true;
 				}
@@ -3960,8 +3961,9 @@ public class SlimefunSetup {
 		.register(true);
 
 		new SlimefunItem(Categories.LUMPS_AND_MAGIC, SlimefunItems.RUNE_WATER, "ANCIENT_RUNE_WATER", RecipeType.ANCIENT_ALTAR,
-		new ItemStack[] {new ItemStack(Material.RAW_FISH), SlimefunItems.MAGIC_LUMP_2, new ItemStack(Material.WATER_BUCKET), new ItemStack(Material.SAND), SlimefunItems.BLANK_RUNE, new ItemStack(Material.SAND) ,new ItemStack(Material.WATER_BUCKET), SlimefunItems.MAGIC_LUMP_2, new ItemStack(Material.RAW_FISH)}, new CustomItem(SlimefunItems.RUNE_WATER, 2))
+		new ItemStack[] {new ItemStack(Material.RAW_FISH), SlimefunItems.MAGIC_LUMP_2, new ItemStack(Material.WATER_BUCKET), new ItemStack(Material.SAND), SlimefunItems.BLANK_RUNE, new ItemStack(Material.SAND) ,new ItemStack(Material.WATER_BUCKET), SlimefunItems.MAGIC_LUMP_2, new ItemStack(Material.RAW_FISH)}, new CustomItem(SlimefunItems.RUNE_WATER, 4))
 		.register(true);
+
 
 		new SlimefunItem(Categories.LUMPS_AND_MAGIC, SlimefunItems.RUNE_ENDER, "ANCIENT_RUNE_ENDER", RecipeType.ANCIENT_ALTAR,
 		new ItemStack[] {new ItemStack(Material.ENDER_PEARL), SlimefunItems.ENDER_LUMP_3, new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.EYE_OF_ENDER), SlimefunItems.BLANK_RUNE, new ItemStack(Material.EYE_OF_ENDER) ,new ItemStack(Material.ENDER_PEARL), SlimefunItems.ENDER_LUMP_3, new ItemStack(Material.ENDER_PEARL)}, new CustomItem(SlimefunItems.RUNE_ENDER, 6))
@@ -4279,7 +4281,11 @@ public class SlimefunSetup {
 
 			@Override
 			public void tick(Block b, SlimefunItem item, Config data) {
-				ArmorStand hologram = InfusedHopper.getArmorStand(b);
+				if (b.getType() != Material.HOPPER) {
+					// we're no longer a hopper, we were probably destroyed. skipping this tick.
+					return;
+				}
+				ArmorStand hologram = InfusedHopper.getArmorStand(b, true);
 				boolean sound = false;
 				for (Entity n: hologram.getNearbyEntities(3.5D, 3.5D, 3.5D)) {
 					if (n instanceof Item && !n.hasMetadata("no_pickup") && n.getLocation().distance(hologram.getLocation()) > 0.4D) {
@@ -4301,12 +4307,15 @@ public class SlimefunSetup {
 
 			@Override
 			public void onPlace(Player p, Block b, SlimefunItem item) {
-				InfusedHopper.getArmorStand(b);
+				InfusedHopper.getArmorStand(b, true);
 			}
 
 			@Override
 			public boolean onBreak(Player p, Block b, SlimefunItem item, UnregisterReason reason) {
-				InfusedHopper.getArmorStand(b).remove();
+				final ArmorStand hologram = InfusedHopper.getArmorStand(b, false);
+				if (hologram != null) {
+					hologram.remove();
+				}
 				return true;
 			}
 		});

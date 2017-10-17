@@ -363,19 +363,5 @@ public class ItemListener implements Listener {
         }
 		SlimefunStartup.instance.myTitanHooks.converSpawnerType(e);
     }
-
-	@SuppressWarnings("deprecation")
-	@EventHandler(priority=EventPriority.LOWEST)
-    public void onFurnaceInsert(InventoryClickEvent e) {
-        if (e.getInventory().getType() == InventoryType.FURNACE && e.getCursor() != null && (e.getRawSlot() == 0 || e.getSlot() == 1)) {
-        	if (!e.isShiftClick()) {
-        		ItemStack item = e.getCurrentItem();
-                e.setCurrentItem(e.getCursor());
-                e.setCursor(item);
-                e.setCancelled(true);
-                PlayerInventory.update((Player)e.getWhoClicked());
-        	}
-        }
-    }
 	
 }

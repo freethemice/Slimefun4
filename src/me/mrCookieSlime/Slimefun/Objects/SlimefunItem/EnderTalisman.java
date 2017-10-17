@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
 public class EnderTalisman extends SlimefunItem {
-	
+
 	boolean consumed;
 	boolean cancel;
 	PotionEffect[] effects;
@@ -22,9 +22,9 @@ public class EnderTalisman extends SlimefunItem {
 		this.suffix = parent.getSuffix();
 		this.effects = parent.getEffects();
 		this.chance = parent.getChance();
-		Slimefun.addDescription("ENDER_" + parent.getName(), "&eEnder Talismans have the advantage", "&eof still working while they", "&eare in your Ender Chest");
+		Slimefun.addHint("ENDER_" + parent.getName(), "&eEnder Talismans have the advantage", "&eof still working while they", "&eare in your Ender Chest");
 	}
-	
+
 	public PotionEffect[] getEffects()	{		return this.effects;	}
 	public boolean isConsumable()	 	{		return this.consumed;	}
 	public boolean isEventCancelled() 	{		return this.cancel;		}
