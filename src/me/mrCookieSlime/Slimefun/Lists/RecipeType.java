@@ -1,16 +1,15 @@
 package me.mrCookieSlime.Slimefun.Lists;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.Item.CustomItem;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunGadget;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunMachine;
 import me.mrCookieSlime.Slimefun.api.SlimefunRecipes;
-
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecipeType {
 	
@@ -62,7 +61,7 @@ public class RecipeType {
 	}
 	
 	public SlimefunItem getMachine() {
-		return SlimefunItem.getByName(machine);
+		return SlimefunItem.getByID(machine);
 	}
 	
 	public static List<ItemStack> getRecipeInputs(SlimefunItem machine) {

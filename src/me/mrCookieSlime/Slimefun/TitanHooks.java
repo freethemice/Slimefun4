@@ -31,6 +31,8 @@ import me.mrCookieSlime.sensibletoolbox.SensibleToolboxPlugin;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.CreatureSpawner;
+import org.bukkit.block.Furnace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
@@ -134,6 +136,24 @@ public class TitanHooks {
                 backupLog.save();
             }
         }, 300, 1000);
+    }
+    public static void FurnaceBurnFix(Block b, int speed)
+    {
+        try {
+            if (!(b.getState() instanceof Furnace)) {
+                b.setType(Material.FURNACE);
+                return;
+            }
+            if (((Furnace) b.getState()).getCookTime() > 0) {
+                Furnace furnace = ((Furnace) b.getState());
+                furnace.setCookTime((short) (((Furnace) b.getState()).getCookTime() + speed * 10));
+                furnace.update();
+
+            }
+            b.getState().update(true, false);
+        } catch(NullPointerException x) {
+        }
+
     }
     public boolean checkforError(final Block b)
     {
@@ -1054,6 +1074,12 @@ public class TitanHooks {
                 }
             }
         }
+    }
+    public static void fixSpawnerPlace(Block block, EntityType type)
+    {
+        CreatureSpawner cs = ((CreatureSpawner) block.getState());
+        cs.setSpawnedType(type);
+        cs.update(true, false);
     }
     public static int getFrequency(Location l) {
         try {

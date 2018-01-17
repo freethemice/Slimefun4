@@ -106,7 +106,7 @@ public class SlimefunBackup {
             }
 
             output.close();
-            System.out.println("[Slimfun] Backed up Blocks to " + file.getName());
+            System.out.println("[Slimefun] Backed up Blocks to " + file.getName());
         } catch(IOException e) {
             e.printStackTrace();
         }

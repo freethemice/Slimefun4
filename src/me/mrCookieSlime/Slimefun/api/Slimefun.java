@@ -173,15 +173,15 @@ public class Slimefun {
 	 */
 	public static boolean hasPermission(Player p, SlimefunItem item, boolean message) {
 		if (item == null) return true;
-		else if (SlimefunStartup.getItemCfg().getString(item.getName() + ".required-permission").equalsIgnoreCase("")) return true;
-		else if (p.hasPermission(SlimefunStartup.getItemCfg().getString(item.getName() + ".required-permission"))) return true;
+		else if (item.getPermission().equalsIgnoreCase("")) return true;
+		else if (p.hasPermission(item.getPermission())) return true;
 		else {
 			if (message) Messages.local.sendTranslation(p, "messages.no-permission", true);
 			return false;
 		}
 	}
 	/**
-	 * Checks if this item is enabled in the world of this player.
+	 * Checks if this item is enabled in the world this player is in.
 	 *
 	 * @param  p        the player to get the world he is in, not null
 	 * @param  item     the item to check, not null
@@ -196,8 +196,8 @@ public class Slimefun {
 		if (sfItem == null) return !SlimefunItem.isDisabled(item);
 		if (SlimefunStartup.getWhitelist().contains(world + ".enabled")) {
 			if (SlimefunStartup.getWhitelist().getBoolean(world + ".enabled")) {
-				if (!SlimefunStartup.getWhitelist().contains(world + ".enabled-items." + sfItem.getName())) SlimefunStartup.getWhitelist().setDefaultValue(world + ".enabled-items." + sfItem.getName(), true);
-				if (SlimefunStartup.getWhitelist().getBoolean(world + ".enabled-items." + sfItem.getName())) return true;
+				if (!SlimefunStartup.getWhitelist().contains(world + ".enabled-items." + sfItem.getID())) SlimefunStartup.getWhitelist().setDefaultValue(world + ".enabled-items." + sfItem.getID(), true);
+				if (SlimefunStartup.getWhitelist().getBoolean(world + ".enabled-items." + sfItem.getID())) return true;
 				else {
 					if (message) Messages.local.sendTranslation(p, "messages.disabled-in-world", true);
 					return false;
@@ -211,7 +211,7 @@ public class Slimefun {
 		else return true;
 	}
 	/**
-	 * Checks if this item is enabled in the world of this player.
+	 * Checks if this item is enabled in the world this player is in.
 	 *
 	 * @param  p        the player to get the world he is in, not null
 	 * @param  sfItem   the item to check, not null
@@ -224,8 +224,8 @@ public class Slimefun {
 		String world = p.getWorld().getName();
 		if (SlimefunStartup.getWhitelist().contains(world + ".enabled")) {
 			if (SlimefunStartup.getWhitelist().getBoolean(world + ".enabled")) {
-				if (!SlimefunStartup.getWhitelist().contains(world + ".enabled-items." + sfItem.getName())) SlimefunStartup.getWhitelist().setDefaultValue(world + ".enabled-items." + sfItem.getName(), true);
-				if (SlimefunStartup.getWhitelist().getBoolean(world + ".enabled-items." + sfItem.getName())) return true;
+				if (!SlimefunStartup.getWhitelist().contains(world + ".enabled-items." + sfItem.getID())) SlimefunStartup.getWhitelist().setDefaultValue(world + ".enabled-items." + sfItem.getID(), true);
+				if (SlimefunStartup.getWhitelist().getBoolean(world + ".enabled-items." + sfItem.getID())) return true;
 				else {
 					if (message) Messages.local.sendTranslation(p, "messages.disabled-in-world", true);
 					return false;
@@ -247,7 +247,7 @@ public class Slimefun {
 		List<String> ids = new ArrayList<String>();
 		
 		for (SlimefunItem item: SlimefunItem.list()) {
-			ids.add(item.getName());
+			ids.add(item.getID());
 		}
 		
 		return ids;

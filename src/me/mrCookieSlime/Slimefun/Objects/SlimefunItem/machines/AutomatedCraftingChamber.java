@@ -1,11 +1,5 @@
 package me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import me.mrCookieSlime.CSCoreLibPlugin.CSCoreLib;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu.AdvancedMenuClickHandler;
@@ -27,7 +21,6 @@ import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
 import me.mrCookieSlime.Slimefun.api.item_transport.ItemTransportFlow;
 import me.mrCookieSlime.Slimefun.api.item_transport.RecipeSorter;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -37,6 +30,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
+
+import java.util.*;
 
 public abstract class AutomatedCraftingChamber extends SlimefunItem {
 	
@@ -274,7 +269,7 @@ public abstract class AutomatedCraftingChamber extends SlimefunItem {
 		String input = builder.toString();
 		
 		if (recipes.containsKey(input)) {
-			ItemStack output = recipes.get(input);
+			ItemStack output = recipes.get(input).clone();
 			
 			if (fits(b, new ItemStack[] {output})) {
 				pushItems(b, new ItemStack[] {output});

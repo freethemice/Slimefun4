@@ -1,21 +1,20 @@
 package me.mrCookieSlime.Slimefun.Objects.SlimefunItem;
 
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
-import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import me.mrCookieSlime.Slimefun.Lists.Categories;
 import me.mrCookieSlime.Slimefun.Lists.RecipeType;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.handlers.BlockTicker;
-
+import me.mrCookieSlime.Slimefun.SlimefunStartup;
+import me.mrCookieSlime.Slimefun.TitanHooks;
 import org.bukkit.block.Block;
-import org.bukkit.block.Furnace;
 import org.bukkit.inventory.ItemStack;
 
 public class EnhancedFurnace extends SlimefunItem {
 	
 	int speed, efficiency, fortune;
 	
-	public EnhancedFurnace(int speed, int efficiency, int fortune, ItemStack item, String name, ItemStack[] recipe) {
-		super(Categories.MACHINES_1, item, name, RecipeType.ENHANCED_CRAFTING_TABLE, recipe);
+	public EnhancedFurnace(int speed, int efficiency, int fortune, ItemStack item, String id, ItemStack[] recipe) {
+		super(Categories.MACHINES_1, item, id, RecipeType.ENHANCED_CRAFTING_TABLE, recipe);
 		
 		this.speed = speed - 1;
 		this.efficiency = efficiency - 1;
@@ -25,16 +24,7 @@ public class EnhancedFurnace extends SlimefunItem {
 			
 			@Override
 			public void tick(Block b, SlimefunItem item, Config data) {
-				try {
-					if (!(b.getState() instanceof Furnace)) {
-						return;
-					}
-					if (((Furnace) b.getState()).getCookTime() > 0) {
-						((Furnace) b.getState()).setCookTime((short) (((Furnace) b.getState()).getCookTime() + getSpeed() * 10));
-					}
-					b.getState().update(true, false);
-				} catch(NullPointerException x) {
-				}
+				TitanHooks.FurnaceBurnFix(b , getSpeed());
 			}
 
 			@Override

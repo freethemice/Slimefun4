@@ -6,6 +6,7 @@ import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Variable;
 import me.mrCookieSlime.CSCoreLibPlugin.events.ItemUseEvent;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.InvUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Player.PlayerInventory;
+import me.mrCookieSlime.CSCoreLibPlugin.general.Reflection.ReflectionUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.general.World.CustomSkull;
 import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
 import me.mrCookieSlime.Slimefun.Misc.BookDesign;
@@ -31,6 +32,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.Hopper;
 import org.bukkit.block.Skull;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
@@ -42,11 +44,13 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -57,7 +61,21 @@ public class ItemListener implements Listener {
 	public ItemListener(SlimefunStartup plugin) {
 		plugin.getServer().getPluginManager().registerEvents(this, plugin);
 	}
-	
+
+	/**
+	 * Listens to InventoryMoveItemEvent to handle IGNITION_CHAMBER.
+	 * @param e InventoryMoveItemEvent
+	 * @since 4.1.11
+	 */
+	@EventHandler
+	public void onIgnitionChamberItemMove(InventoryMoveItemEvent e) {
+		if (e.getInitiator().getHolder() instanceof Hopper) {
+			if (BlockStorage.check(((Hopper) e.getInitiator().getHolder()).getBlock(), "IGNITION_CHAMBER")) {
+				e.setCancelled(true);
+			}
+		}
+	}
+
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void debug(PlayerInteractEvent e) {
@@ -274,6 +292,17 @@ public class ItemListener implements Listener {
 				else if (item.getType() == Material.POTION) {
 					SlimefunItem sfItem = SlimefunItem.getByItem(item);
 					if (sfItem != null && sfItem instanceof Juice) {
+						// Fix for 1.11 and 1.12 where Saturation potions are no longer working
+						if (!ReflectionUtils.getVersion().startsWith("v1_9_") && !ReflectionUtils.getVersion().startsWith("v1_10_")) {
+							for (PotionEffect effect : ((PotionMeta) item.getItemMeta()).getCustomEffects()) {
+								if (effect.getType().equals(PotionEffectType.SATURATION)) {
+									p.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, effect.getDuration(), effect.getAmplifier()));
+									break;
+								}
+							}
+						}
+
+						// Determine from which hand the juice is being drunk, and its amount
 						int mode = 0;
 						
 						if (SlimefunManager.isItemSimiliar(item, p.getInventory().getItemInMainHand(), true)) {
@@ -292,7 +321,8 @@ public class ItemListener implements Listener {
 								mode = 2;
 							}
 						}
-						
+
+						// remove the glass bottle once drunk
 						final int m = mode;
 						
 						Bukkit.getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {
@@ -345,8 +375,8 @@ public class ItemListener implements Listener {
 		else if (e.getEntity() instanceof Wither) {
 			SlimefunItem item = BlockStorage.check(e.getBlock());
 			if (item != null) {
-				if (item.getName().equals("WITHER_PROOF_OBSIDIAN")) e.setCancelled(true);
-				if (item.getName().equals("WITHER_PROOF_GLASS")) e.setCancelled(true);
+				if (item.getID().equals("WITHER_PROOF_OBSIDIAN")) e.setCancelled(true);
+				if (item.getID().equals("WITHER_PROOF_GLASS")) e.setCancelled(true);
 			}
 		}
 	}

@@ -1,8 +1,8 @@
 package me.mrCookieSlime.Slimefun.api.machine;
 
-import java.util.List;
-
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
+
+import java.util.List;
 
 public class MachineSettings {
 	
@@ -15,7 +15,7 @@ public class MachineSettings {
 
 	public MachineSettings(MachineConfig cfg, AContainer machine) {
 		this.cfg = cfg;
-		this.prefix = machine.getName();
+		this.prefix = machine.getID();
 	}
 	
 	public String getString(String path) {

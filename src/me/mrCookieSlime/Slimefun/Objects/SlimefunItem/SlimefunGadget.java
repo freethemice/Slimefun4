@@ -1,20 +1,19 @@
 package me.mrCookieSlime.Slimefun.Objects.SlimefunItem;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import me.mrCookieSlime.Slimefun.Lists.RecipeType;
 import me.mrCookieSlime.Slimefun.Objects.Category;
-
 import org.bukkit.inventory.ItemStack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SlimefunGadget extends SlimefunItem {
 	
 	List<ItemStack[]> recipes;
 	List<ItemStack> display_recipes;
 
-	public SlimefunGadget(Category category, ItemStack item, String name, RecipeType recipeType, ItemStack[] recipe, ItemStack[] machineRecipes) {
-		super(category, item, name, recipeType, recipe);
+	public SlimefunGadget(Category category, ItemStack item, String id, RecipeType recipeType, ItemStack[] recipe, ItemStack[] machineRecipes) {
+		super(category, item, id, recipeType, recipe);
 		this.recipes = new ArrayList<ItemStack[]>();
 		this.display_recipes = new ArrayList<ItemStack>();
 		for (ItemStack i: machineRecipes) {
@@ -23,8 +22,8 @@ public class SlimefunGadget extends SlimefunItem {
 		}
 	}
 	
-	public SlimefunGadget(Category category, ItemStack item, String name, RecipeType recipeType, ItemStack[] recipe, ItemStack[] machineRecipes, String[] keys, Object[] values) {
-		super(category, item, name, recipeType, recipe, keys, values);
+	public SlimefunGadget(Category category, ItemStack item, String id, RecipeType recipeType, ItemStack[] recipe, ItemStack[] machineRecipes, String[] keys, Object[] values) {
+		super(category, item, id, recipeType, recipe, keys, values);
 		this.recipes = new ArrayList<ItemStack[]>();
 		this.display_recipes = new ArrayList<ItemStack>();
 		for (ItemStack i: machineRecipes) {

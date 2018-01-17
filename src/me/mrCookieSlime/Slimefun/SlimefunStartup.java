@@ -204,6 +204,8 @@ public class SlimefunStartup extends JavaPlugin {
 			new FurnaceListener(this);
 			new TeleporterListener(this);
 			new AndroidKillingListener(this);
+			if (currentVersion.startsWith("v1_12_")) new ItemPickupListener_1_12(this);
+			else new ItemPickupListener(this);
 
 			// Toggleable Listeners for performance
 			if (config.getBoolean("items.talismans")) new TalismanListener(this);
@@ -447,7 +449,7 @@ public class SlimefunStartup extends JavaPlugin {
 		Research.researching = null;
 		SlimefunItem.all = null;
 		SlimefunItem.items = null;
-		SlimefunItem.map_name = null;
+		SlimefunItem.map_id = null;
 		SlimefunItem.handlers = null;
 		SlimefunItem.radioactive = null;
 		Variables.damage = null;

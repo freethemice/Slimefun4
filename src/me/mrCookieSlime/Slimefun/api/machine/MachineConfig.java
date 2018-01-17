@@ -1,10 +1,10 @@
 package me.mrCookieSlime.Slimefun.api.machine;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MachineConfig extends Config {
 	
@@ -23,10 +23,10 @@ public class MachineConfig extends Config {
 	}
 	
 	public MachineSettings getSettings(AContainer item) {
-		if (!this.children.containsKey(item.getName())) {
-			this.children.put(item.getName(), new MachineSettings(this, item));
+		if (!this.children.containsKey(item.getID())) {
+			this.children.put(item.getID(), new MachineSettings(this, item));
 		}
 
-		return this.children.get(item.getName());
+		return this.children.get(item.getID());
 	}
 }
