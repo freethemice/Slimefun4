@@ -27,7 +27,6 @@ import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.Soul;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
-import me.mrCookieSlime.sensibletoolbox.SensibleToolboxPlugin;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -54,6 +53,7 @@ public class TitanHooks {
     public static Config backupChecker = new Config("Slimefun-backups.yml");
     public static Config backupLog = new Config("Slimefun-backups.log");
     public static Map<String, String> backupCheck = new HashMap<String, String>();
+    public static Map<Block, Long> blockTicks = new HashMap<Block, Long>();
 
     public static List<AContainer> allMachines = new ArrayList<AContainer>();
 
@@ -70,7 +70,7 @@ public class TitanHooks {
         }
         clearBackupfromFile();
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(SlimefunStartup.instance, new Runnable() {
+       Bukkit.getScheduler().scheduleSyncRepeatingTask(SlimefunStartup.instance, new Runnable() {
             @Override
             public void run() {
                 System.out.println("Slimefun is checking backups, maybe lag...");
@@ -120,9 +120,9 @@ public class TitanHooks {
 
 
                         if (BlockStorage.hasBlockInfo(place)) {
-                            backupLog.setValue(place.toString(), "Slimefun Delete: " + (String) BlockStorage.getBlockInfoAsJson(place));
+                            /*backupLog.setValue(place.toString(), "Slimefun Delete: " + (String) BlockStorage.getBlockInfoAsJson(place));
                             BlockStorage.clearBlockInfo(place);
-                            System.out.println("SF --------------------> Delete: " + deleteme.get(i));
+                            System.out.println("SF --------------------> Delete: " + deleteme.get(i));*/
 
                         } else {
                             System.out.println("BC --------------------> Delete: " + deleteme.get(i));
@@ -135,22 +135,21 @@ public class TitanHooks {
                 //Bukkit.getServer().broadcastMessage(ChatColor.GRAY  + "Slimefun backup check done!");
                 backupLog.save();
             }
-        }, 300, 1000);
+        }, 300, 12000);
     }
     public static void FurnaceBurnFix(Block b, int speed)
     {
         try {
-            if (!(b.getState() instanceof Furnace)) {
-                b.setType(Material.FURNACE);
-                return;
-            }
-            if (((Furnace) b.getState()).getCookTime() > 0) {
-                Furnace furnace = ((Furnace) b.getState());
-                furnace.setCookTime((short) (((Furnace) b.getState()).getCookTime() + speed * 10));
-                furnace.update();
+            if (b.getLocation().getChunk().isLoaded()) {
+                Furnace furnace = (Furnace)b.getState();
 
+                if (furnace.getCookTime() > 0) {
+                    furnace.setCookTime((short) (furnace.getCookTime() + speed * 10));
+                    furnace.update();
+
+                }
+                //((Furnace) b.getState()).update(true, false);
             }
-            b.getState().update(true, false);
         } catch(NullPointerException x) {
         }
 
@@ -199,14 +198,6 @@ public class TitanHooks {
         {
             backupChecker.setValue(s, null);
         }
-    }
-    public static boolean checkItem(ItemStack item)
-    {
-        if (SensibleToolboxPlugin.getInstance().getItemRegistry().isSTBItem(item))
-        {
-            return true;
-        }
-        return false;
     }
     public void SlimeFunShutDown()
     {
@@ -391,9 +382,36 @@ public class TitanHooks {
     {
         return i == 0?"I":(i == 1?"I":(i == 2?"II":(i == 3?"III":(i == 4?"IV":(i == 5?"V":(i == 6?"VI":(i == 7?"VII":(i == 8?"VIII":(i == 9?"IX":(i == 10?"X":String.valueOf(i)))))))))));
     }
+    public int getTimePassed(Block b)
+    {
+        if (!blockTicks.containsKey(b))
+        {
+            blockTicks.put(b, System.currentTimeMillis());
+            return 1;
+        }
+        Long first = blockTicks.get(b);
+        Long passed = System.currentTimeMillis() - first;
+        passed = passed / 500; // 1/2 seconds
+        int out = Integer.parseInt(passed + "");
+        blockTicks.put(b, System.currentTimeMillis());
+        if (out < 1)
+        {
+            out = 1;
+        }
+        return out;
+    }
+    public void clearTimePassed(Block b)
+    {
+        if (blockTicks.containsKey(b))
+        {
+            blockTicks.remove(b);
+        }
+
+    }
     public void AutoEnchanter_tick(Block b, AutoEnchanter AE) {
         if (AE.isProcessing(b)) {
             int timeleft = AE.progress.get(b);
+            int timePassed = getTimePassed(b);
             if (timeleft > 0) {
 
                 ItemStack item = AE.getProgressBar().clone();
@@ -412,15 +430,16 @@ public class TitanHooks {
                 if (ChargableBlock.isChargable(b)) {
                     if (ChargableBlock.getCharge(b) < AE.getEnergyConsumption()) return;
                     ChargableBlock.addCharge(b, -AE.getEnergyConsumption());
-                    AE.progress.put(b, timeleft - 1);
+                    AE.progress.put(b, timeleft - timePassed);
                 }
-                else AE.progress.put(b, timeleft - 1);
+                else AE.progress.put(b, timeleft - timePassed);
             }
             else {
                 endProccess(b, AE);
             }
         }
         else {
+            clearTimePassed(b);
             String OldPower = "";
             String Oldname = "";
             MachineRecipe r = null;
@@ -612,6 +631,7 @@ public class TitanHooks {
     public void AutoDisenchanter_tick(Block b, AutoDisenchanter AD) {
         if (AD.isProcessing(b)) {
             int timeleft = AD.progress.get(b);
+            int timePassed = getTimePassed(b);
             if (timeleft > 0) {
                 ItemStack item = AD.getProgressBar().clone();
                 item.setDurability(MachineHelper.getDurability(item, timeleft, AD.processing.get(b).getTicks()));
@@ -629,9 +649,9 @@ public class TitanHooks {
                 if (ChargableBlock.isChargable(b)) {
                     if (ChargableBlock.getCharge(b) < AD.getEnergyConsumption()) return;
                     ChargableBlock.addCharge(b, -AD.getEnergyConsumption());
-                    AD.progress.put(b, timeleft - 1);
+                    AD.progress.put(b, timeleft - timePassed);
                 }
-                else AD.progress.put(b, timeleft - 1);
+                else AD.progress.put(b, timeleft - timePassed);
 
             }
             else {
@@ -639,6 +659,7 @@ public class TitanHooks {
             }
         }
         else {
+            clearTimePassed(b);
             MachineRecipe r = null;
             Map<Enchantment, Integer> enchantments = new HashMap<Enchantment, Integer>();
             Set<ItemEnchantment> enchantments2 = new HashSet<ItemEnchantment>();
