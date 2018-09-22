@@ -23,7 +23,7 @@ public class AutoEnchanter extends AContainer {
 
 	@Override
 	public ItemStack getProgressBar() {
-		return new ItemStack(Material.GOLD_CHESTPLATE);
+		return new ItemStack(Material.GOLDEN_CHESTPLATE);
 	}
 
 	@Override
@@ -34,7 +34,6 @@ public class AutoEnchanter extends AContainer {
 		return 9;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void tick(Block b) {
 		SlimefunStartup.instance.myTitanHooks.AutoEnchanter_tick(b, this);
@@ -63,7 +62,7 @@ public class AutoEnchanter extends AContainer {
 				else progress.put(b, timeleft - 1);
 			}
 			else {
-				BlockStorage.getInventory(b).replaceExistingItem(22, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 15), " "));
+				BlockStorage.getInventory(b).replaceExistingItem(22, new CustomItem(new ItemStack(Material.BLACK_STAINED_GLASS_PANE), " "));
 				pushItems(b, processing.get(b).getOutput());
 
 				progress.remove(b);
@@ -75,14 +74,13 @@ public class AutoEnchanter extends AContainer {
 			slots:
 			for (int slot: getInputSlots()) {
 				ItemStack target = BlockStorage.getInventory(b).getItemInSlot(slot == getInputSlots()[0] ? getInputSlots()[1]: getInputSlots()[0]);
-                // Check if enchantable
-                SlimefunItem sfTarget = SlimefunItem.getByItem(target);
-                if(sfTarget != null && !sfTarget.isEnchantable()) return;
-
-                ItemStack item = BlockStorage.getInventory(b).getItemInSlot(slot);
-
-                // Enchant
-
+				// Check if enchantable
+				SlimefunItem sfTarget = SlimefunItem.getByItem(target);
+				if(sfTarget != null && !sfTarget.isEnchantable()) return;
+				
+				ItemStack item = BlockStorage.getInventory(b).getItemInSlot(slot);
+				
+				// Enchant
 				if (item != null && item.getType() == Material.ENCHANTED_BOOK && target != null) {
 					Map<Enchantment, Integer> enchantments = new HashMap<Enchantment, Integer>();
 					Set<ItemEnchantment> enchantments2 = new HashSet<ItemEnchantment>();

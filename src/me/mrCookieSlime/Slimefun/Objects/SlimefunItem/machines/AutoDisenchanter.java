@@ -33,7 +33,6 @@ public class AutoDisenchanter extends AContainer {
 		return 9;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void tick(Block b) {
 		SlimefunStartup.instance.myTitanHooks.AutoDisenchanter_tick(b, this);
@@ -62,7 +61,7 @@ public class AutoDisenchanter extends AContainer {
 				else progress.put(b, timeleft - 1);
 			}
 			else {
-				BlockStorage.getInventory(b).replaceExistingItem(22, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 15), " "));
+				BlockStorage.getInventory(b).replaceExistingItem(22, new CustomItem(new ItemStack(Material.BLACK_STAINED_GLASS_PANE), " "));
 				pushItems(b, processing.get(b).getOutput());
 
 				progress.remove(b);
@@ -77,11 +76,15 @@ public class AutoDisenchanter extends AContainer {
 			for (int slot: getInputSlots()) {
 				ItemStack target = BlockStorage.getInventory(b).getItemInSlot(slot == getInputSlots()[0] ? getInputSlots()[1]: getInputSlots()[0]);
 				ItemStack item = BlockStorage.getInventory(b).getItemInSlot(slot);
-                // Check if disenchantable
-                SlimefunItem sfItem = SlimefunItem.getByItem(item);
-                if (sfItem != null && !sfItem.isDisenchantable()) return;
-
-                // Disenchant
+				
+				// Check if disenchantable
+				SlimefunItem sfItem = null;
+				if ((item != null) && (item.getType() != Material.BOOK)) { // stops endless checks of getByItem for empty book stacks.
+					sfItem = SlimefunItem.getByItem(item);
+				}
+				if (sfItem != null && !sfItem.isDisenchantable()) return;
+				
+				// Disenchant
 				if (item != null && target != null && target.getType() == Material.BOOK) {
 					int amount = 0;
 
@@ -97,6 +100,7 @@ public class AutoDisenchanter extends AContainer {
 					}
 					if (amount > 0) {
 						ItemStack newItem = item.clone();
+						newItem.setAmount(1);
 						ItemStack book = target.clone();
 						book.setAmount(1);
 						book.setType(Material.ENCHANTED_BOOK);
@@ -125,8 +129,7 @@ public class AutoDisenchanter extends AContainer {
 				processing.put(b, r);
 				progress.put(b, r.getTicks());
 			}
-		}
-		*/
+		}*/
 	}
 
 	@Override

@@ -1,17 +1,18 @@
 package me.mrCookieSlime.Slimefun.Objects;
 
+import java.util.Calendar;
+
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Calendar;
 /**
  * Represents a {@link Category} that is only displayed in the Guide during
  * a specified month.
  * <p>
  * See {@link Category} for the complete documentation.
- *
+ * 
  * @author TheBusyBiscuit
  * @since 4.0
- *
+ * 
  * @see Category
  * @see LockedCategory
  */
@@ -24,11 +25,11 @@ public class SeasonCategory extends Category {
 	 * <p>
 	 * See {@link Category#Category(ItemStack, int)} for more information about creating
 	 * a category.
-	 *
+	 * 
 	 * @param month The month when the category should be displayed (from 1 = January ; to 12 = December)
 	 * @param tier The tier for this category
 	 * @param item The display item for this category
-	 *
+	 * 
 	 * @since 4.0
 	 */
 	public SeasonCategory(int month, int tier, ItemStack item) {
@@ -38,9 +39,9 @@ public class SeasonCategory extends Category {
 
 	/**
 	 * Gets the month during which the category should be displayed.
-	 *
+	 * 
 	 * @return the month id (from 1 = January ; to 12 = December)
-	 *
+	 * 
 	 * @since 4.0
 	 * @see #isUnlocked()
 	 */
@@ -50,9 +51,9 @@ public class SeasonCategory extends Category {
 
 	/**
 	 * Checks if the category should be displayed in the Guide.
-	 *
+	 * 
 	 * @return true if it should, otherwise false
-	 *
+	 * 
 	 * @since 4.0
 	 * @see #getMonth()
 	 */

@@ -29,7 +29,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.MaterialData;
 
 public class WitherAssembler extends SlimefunItem {
 	
@@ -52,8 +51,8 @@ public class WitherAssembler extends SlimefunItem {
 			@Override
 			public void newInstance(final BlockMenu menu, final Block b) {
 				try {
-					if (!BlockStorage.hasBlockInfo(b) || BlockStorage.getBlockInfo(b, "enabled") == null || BlockStorage.getBlockInfo(b, "enabled").equals("false")) {
-						menu.replaceExistingItem(22, new CustomItem(new MaterialData(Material.SULPHUR), "&7Enabled: &4\u2718", "", "&e> Click to enable this Machine"));
+					if (!BlockStorage.hasBlockInfo(b) || BlockStorage.getLocationInfo(b.getLocation(), "enabled") == null || BlockStorage.getLocationInfo(b.getLocation(), "enabled").equals("false")) {
+						menu.replaceExistingItem(22, new CustomItem(new ItemStack(Material.GUNPOWDER), "&7Enabled: &4\u2718", "", "&e> Click to enable this Machine"));
 						menu.addMenuClickHandler(22, new MenuClickHandler() {
 
 							@Override
@@ -65,7 +64,7 @@ public class WitherAssembler extends SlimefunItem {
 						});
 					}
 					else {
-						menu.replaceExistingItem(22, new CustomItem(new MaterialData(Material.REDSTONE), "&7Enabled: &2\u2714", "", "&e> Click to disable this Machine"));
+						menu.replaceExistingItem(22, new CustomItem(new ItemStack(Material.REDSTONE), "&7Enabled: &2\u2714", "", "&e> Click to disable this Machine"));
 						menu.addMenuClickHandler(22, new MenuClickHandler() {
 
 							@Override
@@ -77,14 +76,14 @@ public class WitherAssembler extends SlimefunItem {
 						});
 					}
 					
-					double offset = (!BlockStorage.hasBlockInfo(b) || BlockStorage.getBlockInfo(b, "offset") == null) ? 3.0F: Double.valueOf(BlockStorage.getBlockInfo(b, "offset"));
+					double offset = (!BlockStorage.hasBlockInfo(b) || BlockStorage.getLocationInfo(b.getLocation(), "offset") == null) ? 3.0F: Double.valueOf(BlockStorage.getLocationInfo(b.getLocation(), "offset"));
 					
-					menu.replaceExistingItem(31, new CustomItem(new MaterialData(Material.PISTON_BASE), "&7Offset: &3" + offset + " Block(s)", "", "&rLeft Click: &7+0.1", "&rRight Click: &7-0.1"));
+					menu.replaceExistingItem(31, new CustomItem(new ItemStack(Material.PISTON), "&7Offset: &3" + offset + " Block(s)", "", "&rLeft Click: &7+0.1", "&rRight Click: &7-0.1"));
 					menu.addMenuClickHandler(31, new MenuClickHandler() {
 
 						@Override
 						public boolean onClick(Player p, int arg1, ItemStack arg2, ClickAction arg3) {
-							double offset = DoubleHandler.fixDouble(Double.valueOf(BlockStorage.getBlockInfo(b, "offset")) + (arg3.isRightClicked() ? -0.1F: 0.1F));
+							double offset = DoubleHandler.fixDouble(Double.valueOf(BlockStorage.getLocationInfo(b.getLocation(), "offset")) + (arg3.isRightClicked() ? -0.1F: 0.1F));
 							BlockStorage.addBlockInfo(b, "offset", String.valueOf(offset));
 							newInstance(menu, b);
 							return false;
@@ -130,10 +129,16 @@ public class WitherAssembler extends SlimefunItem {
 				BlockMenu inv = BlockStorage.getInventory(b);
 				if (inv != null) {
 					for (int slot: getSoulSandSlots()) {
-						if (inv.getItemInSlot(slot) != null) b.getWorld().dropItemNaturally(b.getLocation(), inv.getItemInSlot(slot));
+						if (inv.getItemInSlot(slot) != null) {
+							b.getWorld().dropItemNaturally(b.getLocation(), inv.getItemInSlot(slot));
+							inv.replaceExistingItem(slot, null);
+						}
 					}
 					for (int slot: getWitherSkullSlots()) {
-						if (inv.getItemInSlot(slot) != null) b.getWorld().dropItemNaturally(b.getLocation(), inv.getItemInSlot(slot));
+						if (inv.getItemInSlot(slot) != null) {
+							b.getWorld().dropItemNaturally(b.getLocation(), inv.getItemInSlot(slot));
+							inv.replaceExistingItem(slot, null);
+						}
 					}
 				}
 				return true;
@@ -141,10 +146,9 @@ public class WitherAssembler extends SlimefunItem {
 		});
 	}
 	
-	@SuppressWarnings("deprecation")
 	private void constructMenu(BlockMenuPreset preset) {
 		for (int i: border) {
-			preset.addItem(i, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 7), " "),
+			preset.addItem(i, new CustomItem(new ItemStack(Material.GRAY_STAINED_GLASS_PANE), " "),
 			new MenuClickHandler() {
 
 				@Override
@@ -156,7 +160,7 @@ public class WitherAssembler extends SlimefunItem {
 		}
 		
 		for (int i: border_1) {
-			preset.addItem(i, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 15), " "),
+			preset.addItem(i, new CustomItem(new ItemStack(Material.BLACK_STAINED_GLASS_PANE), " "),
 			new MenuClickHandler() {
 
 				@Override
@@ -168,7 +172,7 @@ public class WitherAssembler extends SlimefunItem {
 		}
 		
 		for (int i: border_2) {
-			preset.addItem(i, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 12), " "),
+			preset.addItem(i, new CustomItem(new ItemStack(Material.BROWN_STAINED_GLASS_PANE), " "),
 			new MenuClickHandler() {
 
 				@Override
@@ -179,7 +183,7 @@ public class WitherAssembler extends SlimefunItem {
 			});
 		}
 		
-		preset.addItem(1, new CustomItem(new MaterialData(Material.SKULL_ITEM, (byte) 1), "&7Wither Skull Slot", "", "&rThis Slot accepts Wither Skeleton Skulls"),
+		preset.addItem(1, new CustomItem(new ItemStack(Material.WITHER_SKELETON_SKULL, (byte) 1), "&7Wither Skull Slot", "", "&rThis Slot accepts Wither Skeleton Skulls"),
 		new MenuClickHandler() {
 
 			@Override
@@ -189,7 +193,7 @@ public class WitherAssembler extends SlimefunItem {
 							
 		});
 		
-		preset.addItem(7, new CustomItem(new MaterialData(Material.SOUL_SAND), "&7Soul Sand Slot", "", "&rThis Slot accepts Soul Sand"),
+		preset.addItem(7, new CustomItem(new ItemStack(Material.SOUL_SAND), "&7Soul Sand Slot", "", "&rThis Slot accepts Soul Sand"),
 		new MenuClickHandler() {
 
 			@Override
@@ -199,7 +203,7 @@ public class WitherAssembler extends SlimefunItem {
 							
 		});
 		
-		preset.addItem(13, new CustomItem(new MaterialData(Material.WATCH), "&7Cooldown: &b30 Seconds", "", "&rThis Machine takes up to half a Minute to operate", "&rso give it some Time!"),
+		preset.addItem(13, new CustomItem(new ItemStack(Material.CLOCK), "&7Cooldown: &b30 Seconds", "", "&rThis Machine takes up to half a Minute to operate", "&rso give it some Time!"),
 		new MenuClickHandler() {
 
 			@Override
@@ -230,10 +234,9 @@ public class WitherAssembler extends SlimefunItem {
 	public void register(boolean slimefun) {
 		addItemHandler(new BlockTicker() {
 			
-			@SuppressWarnings("deprecation")
 			@Override
 			public void tick(final Block b, SlimefunItem sf, Config data) {
-				if (BlockStorage.getBlockInfo(b, "enabled").equals("false")) return;
+				if (BlockStorage.getLocationInfo(b.getLocation(), "enabled").equals("false")) return;
 				if (lifetime % 60 == 0) {
 					if (ChargableBlock.getCharge(b) < getEnergyConsumption()) return;
 					
@@ -251,7 +254,7 @@ public class WitherAssembler extends SlimefunItem {
 					}
 					
 					for (int slot: getWitherSkullSlots()) {
-						if (SlimefunManager.isItemSimiliar(BlockStorage.getInventory(b).getItemInSlot(slot), new MaterialData(Material.SKULL_ITEM, (byte) 1).toItemStack(1), true, DataType.ALWAYS)) {
+						if (SlimefunManager.isItemSimiliar(BlockStorage.getInventory(b).getItemInSlot(slot), new ItemStack(Material.WITHER_SKELETON_SKULL), true, DataType.ALWAYS)) {
 							skulls = skulls + BlockStorage.getInventory(b).getItemInSlot(slot).getAmount();
 							if (skulls > 2) {
 								skulls = 3;
@@ -276,7 +279,7 @@ public class WitherAssembler extends SlimefunItem {
 						}
 						
 						for (int slot: getWitherSkullSlots()) {
-							if (SlimefunManager.isItemSimiliar(BlockStorage.getInventory(b).getItemInSlot(slot), new MaterialData(Material.SKULL_ITEM, (byte) 1).toItemStack(1), true, DataType.ALWAYS)) {
+							if (SlimefunManager.isItemSimiliar(BlockStorage.getInventory(b).getItemInSlot(slot), new ItemStack(Material.WITHER_SKELETON_SKULL), true, DataType.ALWAYS)) {
 								final int amount = BlockStorage.getInventory(b).getItemInSlot(slot).getAmount();
 								if (amount >= skulls) {
 									BlockStorage.getInventory(b).replaceExistingItem(slot, InvUtils.decreaseItem(BlockStorage.getInventory(b).getItemInSlot(slot), skulls));
@@ -291,7 +294,7 @@ public class WitherAssembler extends SlimefunItem {
 						
 						ChargableBlock.addCharge(b, -getEnergyConsumption());
 						
-						final double offset = Double.parseDouble(BlockStorage.getBlockInfo(b, "offset"));
+						final double offset = Double.parseDouble(BlockStorage.getLocationInfo(b.getLocation(), "offset"));
 						
 						Bukkit.getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {
 							

@@ -1,15 +1,16 @@
 package me.mrCookieSlime.Slimefun.api.inventory;
 
-import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
-import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
+import java.io.File;
+import java.util.ArrayList;
+
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.io.File;
-import java.util.ArrayList;
+import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
+import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
 
 public class BlockMenu extends ChestMenu {
 	
@@ -23,6 +24,7 @@ public class BlockMenu extends ChestMenu {
 	private static String serializeLocation(Location l) {
 		return l.getWorld().getName() + ";" + l.getBlockX() + ";" + l.getBlockY() + ";" + l.getBlockZ();
 	}
+	
 	public BlockMenu(BlockMenuPreset preset, Location l) {
 		super(preset.getTitle());
 		this.preset = preset;
@@ -57,7 +59,10 @@ public class BlockMenu extends ChestMenu {
 	}
 	
 	public void save(Location l) {
-		if (changes == 0) return;
+		if (changes == 0) {
+			return;
+		}
+		
 		// To force CS-CoreLib to build the Inventory
 		this.getContents();
 		
@@ -71,12 +76,17 @@ public class BlockMenu extends ChestMenu {
 		
 		changes = 0;
 	}
-	
+
+	@Deprecated
 	public void move(Block b) {
+		move(b.getLocation());
+	}
+
+	public void move(Location l) {
 		this.delete(this.l);
-		this.l = b.getLocation();
-		this.preset.newInstance(this, b);
-		this.save(b.getLocation());
+		this.l = l;
+		this.preset.newInstance(this, l);
+		this.save(l);
 	}
 	
 	public Block getBlock() {
@@ -114,6 +124,7 @@ public class BlockMenu extends ChestMenu {
 		
 		changes++;
 	}
+	
 	@Override
 	public ChestMenu addMenuOpeningHandler(MenuOpeningHandler handler) {
 		if (handler instanceof SaveHandler) {
@@ -122,21 +133,19 @@ public class BlockMenu extends ChestMenu {
 		else {
 			return super.addMenuOpeningHandler(new SaveHandler(this, handler));
 		}
-
 	}
-
-
+	
 	public void close() {
 		for(HumanEntity human: new ArrayList<>(toInventory().getViewers())) {
 			human.closeInventory();
 		}
 	}
-
+	
 	public class SaveHandler implements MenuOpeningHandler {
-
+		
 		BlockMenu menu;
 		MenuOpeningHandler handler;
-
+		
 		public SaveHandler(BlockMenu menu, MenuOpeningHandler handler) {
 			this.handler = handler;
 			this.menu = menu;
@@ -146,10 +155,7 @@ public class BlockMenu extends ChestMenu {
 		public void onOpen(Player p) {
 			handler.onOpen(p);
 			menu.changes++;
-
 		}
-
+		
 	}
-
-
 }

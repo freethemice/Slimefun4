@@ -1,4 +1,4 @@
-package me.mrCookieSlime.Slimefun;
+package me.mrCookieSlime.Slimefun.Titan;
 
 
 import me.badbones69.crazyenchantments.api.CEnchantments;
@@ -10,10 +10,6 @@ import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.Item.CustomItem;
 import me.mrCookieSlime.CSCoreLibPlugin.general.World.CustomSkull;
 import me.mrCookieSlime.EmeraldEnchants.EmeraldEnchants;
 import me.mrCookieSlime.EmeraldEnchants.ItemEnchantment;
-import me.mrCookieSlime.Slimefun.Android.AndroidType;
-import me.mrCookieSlime.Slimefun.Android.ProgrammableAndroid;
-import me.mrCookieSlime.Slimefun.Lists.Categories;
-import me.mrCookieSlime.Slimefun.Lists.RecipeType;
 import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
@@ -22,6 +18,7 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecip
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.AutoDisenchanter;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.AutoEnchanter;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
+import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.Soul;
@@ -32,6 +29,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.Furnace;
+import org.bukkit.block.Skull;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
@@ -46,6 +44,9 @@ import org.json.simple.JSONObject;
 
 import java.util.*;
 
+import static me.mrCookieSlime.Slimefun.api.energy.ChargableBlock.getCharge;
+import static me.mrCookieSlime.Slimefun.api.energy.ChargableBlock.getMaxCharge;
+
 /**
  * Created by Daniel on 1/10/2017.
  */
@@ -58,7 +59,6 @@ public class TitanHooks {
     public static List<AContainer> allMachines = new ArrayList<AContainer>();
 
 
-    ;
 
 
 
@@ -120,9 +120,9 @@ public class TitanHooks {
 
 
                         if (BlockStorage.hasBlockInfo(place)) {
-                            /*backupLog.setValue(place.toString(), "Slimefun Delete: " + (String) BlockStorage.getBlockInfoAsJson(place));
-                            BlockStorage.clearBlockInfo(place);
-                            System.out.println("SF --------------------> Delete: " + deleteme.get(i));*/
+                            //backupLog.setValue(place.toString(), "Slimefun Delete: " + (String) BlockStorage.getBlockInfoAsJson(place));
+                            //BlockStorage.clearBlockInfo(place);
+                            //System.out.println("SF --------------------> Delete: " + deleteme.get(i));
 
                         } else {
                             System.out.println("BC --------------------> Delete: " + deleteme.get(i));
@@ -153,6 +153,26 @@ public class TitanHooks {
         } catch(NullPointerException x) {
         }
 
+    }
+    public static void updateTexture(final Location l) {
+        Bukkit.getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    Block b = l.getBlock();
+                    int charge = getCharge(b), capacity = getMaxCharge(b);
+                    if (b.getState() instanceof Skull) {
+                        if (charge < (int) (capacity * 0.25D)) CustomSkull.setSkull(b, "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTEzNjFlNTc2YjQ5M2NiZmRmYWUzMjg2NjFjZWRkMWFkZDU1ZmFiNGU1ZWI0MThiOTJjZWJmNjI3NWY4YmI0In19fQ==");
+                        else if (charge < (int) (capacity * 0.5D)) CustomSkull.setSkull(b, "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzA1MzIzMzk0YTdkOTFiZmIzM2RmMDZkOTJiNjNjYjQxNGVmODBmMDU0ZDA0NzM0ZWEwMTVhMjNjNTM5In19fQ==");
+                        else if (charge < (int) (capacity * 0.75D)) CustomSkull.setSkull(b, "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTU4NDQzMmFmNmYzODIxNjcxMjAyNThkMWVlZThjODdjNmU3NWQ5ZTQ3OWU3YjBkNGM3YjZhZDQ4Y2ZlZWYifX19");
+                        else CustomSkull.setSkull(b, "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2EyNTY5NDE1YzE0ZTMxYzk4ZWM5OTNhMmY5OWU2ZDY0ODQ2ZGIzNjdhMTNiMTk5OTY1YWQ5OWM0MzhjODZjIn19fQ==");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
     public boolean checkforError(final Block b)
     {
@@ -368,7 +388,7 @@ public class TitanHooks {
     }
     public void endProccess(Block b, AContainer AC)
     {
-        BlockStorage.getInventory(b).replaceExistingItem(22, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 15), " "));
+        BlockStorage.getInventory(b).replaceExistingItem(22, new CustomItem(new MaterialData(Material.BLACK_STAINED_GLASS_PANE), " "));
         AC.pushItems(b, AContainer.processing.get(b).getOutput());
 
         AC.progress.remove(b);
@@ -428,7 +448,7 @@ public class TitanHooks {
                 BlockStorage.getInventory(b).replaceExistingItem(22, item);
 
                 if (ChargableBlock.isChargable(b)) {
-                    if (ChargableBlock.getCharge(b) < AE.getEnergyConsumption()) return;
+                    if (getCharge(b) < AE.getEnergyConsumption()) return;
                     ChargableBlock.addCharge(b, -AE.getEnergyConsumption());
                     AE.progress.put(b, timeleft - timePassed);
                 }
@@ -628,6 +648,11 @@ public class TitanHooks {
 
         SlimefunStartup.instance.Saver.run();
     }
+    public boolean axeCheck(ItemStack itemStack)
+    {
+        if (itemStack.getType().toString().contains("_AXE")) return  true;
+        return false;
+    }
     public void AutoDisenchanter_tick(Block b, AutoDisenchanter AD) {
         if (AD.isProcessing(b)) {
             int timeleft = AD.progress.get(b);
@@ -647,7 +672,7 @@ public class TitanHooks {
                 BlockStorage.getInventory(b).replaceExistingItem(22, item);
 
                 if (ChargableBlock.isChargable(b)) {
-                    if (ChargableBlock.getCharge(b) < AD.getEnergyConsumption()) return;
+                    if (getCharge(b) < AD.getEnergyConsumption()) return;
                     ChargableBlock.addCharge(b, -AD.getEnergyConsumption());
                     AD.progress.put(b, timeleft - timePassed);
                 }
@@ -741,310 +766,12 @@ public class TitanHooks {
     public void registerNewRecipes()
     {
     }
-    public void SetupAnd(boolean oktoRun)
-    {
-        if (!oktoRun)
-        {
-            return;
-        }
-        new ProgrammableAndroid(Categories.ELECTRICITY, SlimefunItems.PROGRAMMABLE_ANDROID, "PROGRAMMABLE_ANDROID", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {SlimefunItems.PLASTIC_SHEET, SlimefunItems.ANDROID_MEMORY_CORE, SlimefunItems.PLASTIC_SHEET, SlimefunItems.COAL_GENERATOR, SlimefunItems.ELECTRIC_MOTOR, new ItemStack(Material.CHEST), SlimefunItems.PLASTIC_SHEET, SlimefunItems.PLASTIC_SHEET, SlimefunItems.PLASTIC_SHEET}) {
-
-            @Override
-            public AndroidType getAndroidType() {
-                return AndroidType.NONE;
-            }
-
-            @Override
-            public float getFuelEfficiency() {
-                return 1;
-            }
-
-            @Override
-            public int getTier() {
-                return 1;
-            }
-
-        }
-                .register(true);
-
-        new ProgrammableAndroid(Categories.ELECTRICITY, SlimefunItems.PROGRAMMABLE_ANDROID_MINER, "PROGRAMMABLE_ANDROID_MINER", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {null, null, null, new ItemStack(Material.DIAMOND_PICKAXE), SlimefunItems.PROGRAMMABLE_ANDROID, new ItemStack(Material.DIAMOND_PICKAXE), null, SlimefunItems.ELECTRIC_MOTOR, null}) {
-
-            @Override
-            public AndroidType getAndroidType() {
-                return AndroidType.MINER;
-            }
-
-            @Override
-            public float getFuelEfficiency() {
-                return 1;
-            }
-
-            @Override
-            public int getTier() {
-                return 1;
-            }
-
-        }
-                .register(true);
-
-        new ProgrammableAndroid(Categories.ELECTRICITY, SlimefunItems.PROGRAMMABLE_ANDROID_FARMER, "PROGRAMMABLE_ANDROID_FARMER", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {null, null, null, new ItemStack(Material.DIAMOND_HOE), SlimefunItems.PROGRAMMABLE_ANDROID, new ItemStack(Material.DIAMOND_HOE), null, SlimefunItems.ELECTRIC_MOTOR, null}) {
-
-            @Override
-            public AndroidType getAndroidType() {
-                return AndroidType.FARMER;
-            }
-
-            @Override
-            public float getFuelEfficiency() {
-                return 1;
-            }
-
-            @Override
-            public int getTier() {
-                return 1;
-            }
-
-        }
-                .register(true);
-
-        new ProgrammableAndroid(Categories.ELECTRICITY, SlimefunItems.PROGRAMMABLE_ANDROID_WOODCUTTER, "PROGRAMMABLE_ANDROID_WOODCUTTER", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {null, null, null, new ItemStack(Material.DIAMOND_AXE), SlimefunItems.PROGRAMMABLE_ANDROID, new ItemStack(Material.DIAMOND_AXE), null, SlimefunItems.ELECTRIC_MOTOR, null}) {
-
-            @Override
-            public AndroidType getAndroidType() {
-                return AndroidType.WOODCUTTER;
-            }
-
-            @Override
-            public float getFuelEfficiency() {
-                return 1;
-            }
-
-            @Override
-            public int getTier() {
-                return 1;
-            }
-
-        }
-                .register(true);
-
-        new ProgrammableAndroid(Categories.ELECTRICITY, SlimefunItems.PROGRAMMABLE_ANDROID_FISHERMAN, "PROGRAMMABLE_ANDROID_FISHERMAN", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {null, null, null, new ItemStack(Material.FISHING_ROD), SlimefunItems.PROGRAMMABLE_ANDROID, new ItemStack(Material.FISHING_ROD), null, SlimefunItems.ELECTRIC_MOTOR, null}) {
-
-            @Override
-            public AndroidType getAndroidType() {
-                return AndroidType.FISHERMAN;
-            }
-
-            @Override
-            public float getFuelEfficiency() {
-                return 1;
-            }
-
-            @Override
-            public int getTier() {
-                return 1;
-            }
-
-        }
-                .register(true);
-
-        new ProgrammableAndroid(Categories.ELECTRICITY, SlimefunItems.PROGRAMMABLE_ANDROID_BUTCHER, "PROGRAMMABLE_ANDROID_BUTCHER", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {null, SlimefunItems.GPS_TRANSMITTER, null, new ItemStack(Material.DIAMOND_SWORD), SlimefunItems.PROGRAMMABLE_ANDROID, new ItemStack(Material.DIAMOND_SWORD), null, SlimefunItems.ELECTRIC_MOTOR, null}) {
-
-            @Override
-            public AndroidType getAndroidType() {
-                return AndroidType.FIGHTER;
-            }
-
-            @Override
-            public float getFuelEfficiency() {
-                return 1;
-            }
-
-            @Override
-            public int getTier() {
-                return 1;
-            }
-
-        }
-                .register(true);
-
-        new SlimefunItem(Categories.ELECTRICITY, SlimefunItems.ANDROID_INTERFACE_ITEMS, "ANDROID_INTERFACE_ITEMS", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {SlimefunItems.PLASTIC_SHEET, SlimefunItems.PLASTIC_SHEET, SlimefunItems.PLASTIC_SHEET, SlimefunItems.PLASTIC_SHEET, SlimefunItems.BASIC_CIRCUIT_BOARD, new MaterialData(Material.STAINED_GLASS, (byte) 11).toItemStack(1), SlimefunItems.PLASTIC_SHEET, SlimefunItems.PLASTIC_SHEET, SlimefunItems.PLASTIC_SHEET})
-                .register(true);
-
-        new SlimefunItem(Categories.ELECTRICITY, SlimefunItems.ANDROID_INTERFACE_FUEL, "ANDROID_INTERFACE_FUEL", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {SlimefunItems.PLASTIC_SHEET, SlimefunItems.PLASTIC_SHEET, SlimefunItems.PLASTIC_SHEET, new MaterialData(Material.STAINED_GLASS, (byte) 14).toItemStack(1), SlimefunItems.BASIC_CIRCUIT_BOARD, SlimefunItems.PLASTIC_SHEET, SlimefunItems.PLASTIC_SHEET, SlimefunItems.PLASTIC_SHEET, SlimefunItems.PLASTIC_SHEET})
-                .register(true);
-
-
-        new ProgrammableAndroid(Categories.ELECTRICITY, SlimefunItems.PROGRAMMABLE_ANDROID_2, "PROGRAMMABLE_ANDROID_2", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {SlimefunItems.PLASTIC_SHEET, SlimefunItems.ANDROID_MEMORY_CORE, SlimefunItems.PLASTIC_SHEET, SlimefunItems.COMBUSTION_REACTOR, SlimefunItems.PROGRAMMABLE_ANDROID, new ItemStack(Material.CHEST), SlimefunItems.PLASTIC_SHEET, SlimefunItems.POWER_CRYSTAL, SlimefunItems.PLASTIC_SHEET}) {
-
-            @Override
-            public AndroidType getAndroidType() {
-                return AndroidType.NONE;
-            }
-
-            @Override
-            public float getFuelEfficiency() {
-                return 1.5F;
-            }
-
-            @Override
-            public int getTier() {
-                return 2;
-            }
-
-        }
-                .register(true);
-
-        new ProgrammableAndroid(Categories.ELECTRICITY, SlimefunItems.PROGRAMMABLE_ANDROID_2_FISHERMAN, "PROGRAMMABLE_ANDROID_2_FISHERMAN", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {null, null, null, new ItemStack(Material.FISHING_ROD), SlimefunItems.PROGRAMMABLE_ANDROID_2, new ItemStack(Material.FISHING_ROD), null, SlimefunItems.ELECTRIC_MOTOR, null}) {
-
-            @Override
-            public AndroidType getAndroidType() {
-                return AndroidType.FISHERMAN;
-            }
-
-            @Override
-            public float getFuelEfficiency() {
-                return 1.5F;
-            }
-
-            @Override
-            public int getTier() {
-                return 2;
-            }
-
-        }
-                .register(true);
-
-        new ProgrammableAndroid(Categories.ELECTRICITY, SlimefunItems.PROGRAMMABLE_ANDROID_2_BUTCHER, "PROGRAMMABLE_ANDROID_2_BUTCHER", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {null, SlimefunItems.GPS_TRANSMITTER, null, new ItemStack(Material.DIAMOND_SWORD), SlimefunItems.PROGRAMMABLE_ANDROID_2, new ItemStack(Material.DIAMOND_SWORD), null, SlimefunItems.ELECTRIC_MOTOR, null}) {
-
-            @Override
-            public AndroidType getAndroidType() {
-                return AndroidType.FIGHTER;
-            }
-
-            @Override
-            public float getFuelEfficiency() {
-                return 1.5F;
-            }
-
-            @Override
-            public int getTier() {
-                return 2;
-            }
-
-        }
-                .register(true);
-
-        new ProgrammableAndroid(Categories.ELECTRICITY, SlimefunItems.PROGRAMMABLE_ANDROID_2_FARMER, "PROGRAMMABLE_ANDROID_2_FARMER", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {null, SlimefunItems.GPS_TRANSMITTER, null, new ItemStack(Material.DIAMOND_HOE), SlimefunItems.PROGRAMMABLE_ANDROID_2, new ItemStack(Material.DIAMOND_HOE), null, SlimefunItems.ELECTRIC_MOTOR, null}) {
-
-            @Override
-            public AndroidType getAndroidType() {
-                return AndroidType.ADVANCED_FARMER;
-            }
-
-            @Override
-            public float getFuelEfficiency() {
-                return 1.5F;
-            }
-
-            @Override
-            public int getTier() {
-                return 2;
-            }
-
-        }
-                .register(true);
-
-
-        new ProgrammableAndroid(Categories.ELECTRICITY, SlimefunItems.PROGRAMMABLE_ANDROID_3, "PROGRAMMABLE_ANDROID_3", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {SlimefunItems.PLASTIC_SHEET, SlimefunItems.ANDROID_MEMORY_CORE, SlimefunItems.PLASTIC_SHEET, SlimefunItems.NUCLEAR_REACTOR, SlimefunItems.PROGRAMMABLE_ANDROID_2, new ItemStack(Material.CHEST), SlimefunItems.BLISTERING_INGOT_3, SlimefunItems.POWER_CRYSTAL, SlimefunItems.BLISTERING_INGOT_3}) {
-
-            @Override
-            public AndroidType getAndroidType() {
-                return AndroidType.NONE;
-            }
-
-            @Override
-            public float getFuelEfficiency() {
-                return 1F;
-            }
-
-            @Override
-            public int getTier() {
-                return 3;
-            }
-
-        }
-                .register(true);
-
-        new ProgrammableAndroid(Categories.ELECTRICITY, SlimefunItems.PROGRAMMABLE_ANDROID_3_FISHERMAN, "PROGRAMMABLE_ANDROID_3_FISHERMAN", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {null, null, null, new ItemStack(Material.FISHING_ROD), SlimefunItems.PROGRAMMABLE_ANDROID_3, new ItemStack(Material.FISHING_ROD), null, SlimefunItems.ELECTRIC_MOTOR, null}) {
-
-            @Override
-            public AndroidType getAndroidType() {
-                return AndroidType.FISHERMAN;
-            }
-
-            @Override
-            public float getFuelEfficiency() {
-                return 1F;
-            }
-
-            @Override
-            public int getTier() {
-                return 3;
-            }
-
-        }
-                .register(true);
-
-        new ProgrammableAndroid(Categories.ELECTRICITY, SlimefunItems.PROGRAMMABLE_ANDROID_3_BUTCHER, "PROGRAMMABLE_ANDROID_3_BUTCHER", RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[] {null, SlimefunItems.GPS_TRANSMITTER_3, null, new ItemStack(Material.DIAMOND_SWORD), SlimefunItems.PROGRAMMABLE_ANDROID_3, new ItemStack(Material.DIAMOND_SWORD), null, SlimefunItems.ELECTRIC_MOTOR, null}) {
-
-            @Override
-            public AndroidType getAndroidType() {
-                return AndroidType.FIGHTER;
-            }
-
-            @Override
-            public float getFuelEfficiency() {
-                return 1F;
-            }
-
-            @Override
-            public int getTier() {
-                return 3;
-            }
-
-        }
-                .register(true);
-        //Slimefun.registerResearch(new Research(179, "Programmable Androids", 50), SlimefunItems.PROGRAMMABLE_ANDROID, SlimefunItems.PROGRAMMABLE_ANDROID_FARMER, SlimefunItems.PROGRAMMABLE_ANDROID_BUTCHER, SlimefunItems.PROGRAMMABLE_ANDROID_FISHERMAN, SlimefunItems.PROGRAMMABLE_ANDROID_MINER, SlimefunItems.PROGRAMMABLE_ANDROID_WOODCUTTER);
-        //Slimefun.registerResearch(new Research(191, "Butcher Androids", 32), SlimefunItems.PROGRAMMABLE_ANDROID_BUTCHER);
-        //Slimefun.registerResearch(new Research(194, "Advanced Androids", 60), SlimefunItems.PROGRAMMABLE_ANDROID_2);
-        //Slimefun.registerResearch(new Research(195, "Advanced Androids - Butcher", 30), SlimefunItems.PROGRAMMABLE_ANDROID_2_BUTCHER);
-        //Slimefun.registerResearch(new Research(196, "Advanced Androids - Fisherman", 30), SlimefunItems.PROGRAMMABLE_ANDROID_2_FISHERMAN);
-        //Slimefun.registerResearch(new Research(222, "Empowered Androids", 60), SlimefunItems.PROGRAMMABLE_ANDROID_3);
-        //Slimefun.registerResearch(new Research(223, "Empowered Androids - Butcher", 30), SlimefunItems.PROGRAMMABLE_ANDROID_3_BUTCHER);
-        //Slimefun.registerResearch(new Research(224, "Empowered Androids - Fisherman", 30), SlimefunItems.PROGRAMMABLE_ANDROID_3_FISHERMAN);
-        //Slimefun.registerResearch(new Research(233, "Advanced Androids - Farmer", 30), SlimefunItems.PROGRAMMABLE_ANDROID_2_FARMER);
-    }
     public void converSpawnerType(InventoryClickEvent e) {
         ItemStack CI = e.getCursor();
         ItemStack II = e.getCurrentItem();
         if (II != null && CI != null) {
 
-            if (CI.getType() == Material.MONSTER_EGG) {
+            if (CI.getType().toString().contains("_EGG")) {
                 if (II.hasItemMeta()) {
                     if (II.getItemMeta().hasDisplayName()) {
                         if (II.getItemMeta().getDisplayName().startsWith(ChatColor.YELLOW + "Powered Spawner " + ChatColor.GRAY + "(")) {
@@ -1122,7 +849,7 @@ public class TitanHooks {
                 if (sfi != null) {
                     if (sfi.getItem() != null) {
                         if (sfi.getItem().getType() != null) {
-                            if (sfi.getItem().getType() == Material.SKULL_ITEM) {
+                            if (sfi.getItem().getType() == Material.PLAYER_HEAD) {
                                 String SFS = CustomSkull.getTexture(sfi.getItem());
                                 if (SFS != null) {
                                     if (SFS.equals(Texture)) {
@@ -1142,18 +869,19 @@ public class TitanHooks {
             return null;
         }
     }
-    public static boolean isItemSimiliar(ItemStack item, ItemStack SFitem, boolean lore, SlimefunManager.DataType data, List<Material> data_safe) {
+    public static boolean isItemSimiliar(ItemStack item, ItemStack SFitem, boolean lore, SlimefunManager.DataType data) {
         if (item == null) return SFitem == null;
         if (SFitem == null) return false;
 
         if (item.getType() == SFitem.getType() && item.getAmount() >= SFitem.getAmount()) {
-            if (data.equals(SlimefunManager.DataType.ALWAYS) || (data.equals(SlimefunManager.DataType.IF_COLORED) && data_safe.contains(item.getType()))) {
-                if (data_safe.contains(item.getType())) {
-                    if (item.getData().getData() != SFitem.getData().getData()) {
-                        if (!(SFitem.getDurability() == item.getData().getData() && SFitem.getData().getData() == item.getDurability())) return false;
-                    }
-                }
-                else if (data.equals(SlimefunManager.DataType.ALWAYS) && item.getDurability() != SFitem.getDurability()) {
+            //ToDo: Removed data_safe - is that correct?
+            if (data.equals(SlimefunManager.DataType.ALWAYS)/* || (data.equals(DataType.IF_COLORED) && data_safe.contains(item.getType()))*/) {
+/*				if (data_safe.contains(item.getType())) {
+					if (item.getData().getData() != SFitem.getData().getData()) {
+						if (!(SFitem.getDurability() == item.getData().getData() && SFitem.getData().getData() == item.getDurability())) return false;
+					}
+				}
+				else*/ if (data.equals(SlimefunManager.DataType.ALWAYS) && item.getDurability() != SFitem.getDurability()) {
                     return false;
                 }
             }
@@ -1201,5 +929,12 @@ public class TitanHooks {
             else return !item.hasItemMeta() && !SFitem.hasItemMeta();
         }
         else return false;
+    }
+
+    public void SetupAnd(boolean b) {
+        if (b)
+        {
+
+        }
     }
 }

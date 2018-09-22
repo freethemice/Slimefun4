@@ -4,8 +4,8 @@ import me.mrCookieSlime.CSCoreLibPlugin.CSCoreLib;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.PluginUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Reflection.ReflectionUtils;
-import me.mrCookieSlime.CSCoreLibSetup.CSCoreLibLoader;
 import me.mrCookieSlime.Slimefun.AncientAltar.Pedestals;
+import me.mrCookieSlime.Slimefun.CSCoreLibSetup.CSCoreLibLoader;
 import me.mrCookieSlime.Slimefun.Commands.SlimefunCommand;
 import me.mrCookieSlime.Slimefun.Commands.SlimefunTabCompleter;
 import me.mrCookieSlime.Slimefun.GEO.OreGenSystem;
@@ -16,13 +16,16 @@ import me.mrCookieSlime.Slimefun.GitHub.GitHubConnector;
 import me.mrCookieSlime.Slimefun.GitHub.GitHubSetup;
 import me.mrCookieSlime.Slimefun.Hashing.ItemHash;
 import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
+import me.mrCookieSlime.Slimefun.Misc.BookDesign;
 import me.mrCookieSlime.Slimefun.Objects.MultiBlock;
 import me.mrCookieSlime.Slimefun.Objects.Research;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunArmorPiece;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.AutoEnchanter;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.ElectricDustWasher;
 import me.mrCookieSlime.Slimefun.Setup.*;
+import me.mrCookieSlime.Slimefun.Titan.TitanHooks;
 import me.mrCookieSlime.Slimefun.URID.AutoSavingTask;
 import me.mrCookieSlime.Slimefun.URID.URID;
 import me.mrCookieSlime.Slimefun.WorldEdit.WESlimefunManager;
@@ -40,8 +43,8 @@ import me.mrCookieSlime.Slimefun.listeners.*;
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -76,12 +79,10 @@ public class SlimefunStartup extends JavaPlugin {
 	private boolean exoticGarden = false;
 	private boolean coreProtect = false;
 
+	// Supported Versions of Minecraft
+	final String[] supported = {"v1_13_"};
 	public TitanHooks myTitanHooks;
 	public AutoSavingTask Saver;
-	// Supported Versions of Minecraft
-	//final String[] supported = {"v1_9_", "v1_10_", "v1_11_", "v1_12_", "PluginBukkitBridge"};
-	final String[] supported = {"v1_9_", "v1_10_", "v1_11_", "v1_12_"};
-
 
 	@SuppressWarnings("deprecation")
 	@Override
@@ -95,20 +96,20 @@ public class SlimefunStartup extends JavaPlugin {
 			if (currentVersion.startsWith("v")) {
 				boolean compatibleVersion = false;
 				StringBuilder versions = new StringBuilder();
-
+				
 				int i = 0;
 				for (String version: supported) {
 					if (currentVersion.startsWith(version)) {
 						compatibleVersion = true;
 					}
-
+					
 					if (i == 0) versions.append(version.substring(1).replaceFirst("_", ".").replace("_", ".X"));
 					else if (i == supported.length - 1) versions.append(" or " + version.substring(1).replaceFirst("_", ".").replace("_", ".X"));
 					else versions.append(", " + version.substring(1).replaceFirst("_", ".").replace("_", ".X"));
-
+					
 					i++;
 				}
-
+				
 				// Looks like you are using an unsupported Minecraft Version
 				if (!compatibleVersion) {
 					System.err.println("### Slimefun failed to load!");
@@ -204,8 +205,8 @@ public class SlimefunStartup extends JavaPlugin {
 			new FurnaceListener(this);
 			new TeleporterListener(this);
 			new AndroidKillingListener(this);
-			if (currentVersion.startsWith("v1_12_")) new ItemPickupListener_1_12(this);
-			else new ItemPickupListener(this);
+			new NetworkListener(this);
+			new ItemPickupListener(this);
 
 			// Toggleable Listeners for performance
 			if (config.getBoolean("items.talismans")) new TalismanListener(this);
@@ -223,7 +224,9 @@ public class SlimefunStartup extends JavaPlugin {
 							Player p = e.getPlayer();
 							if (!getWhitelist().getBoolean(p.getWorld().getName() + ".enabled")) return;
 							if (!getWhitelist().getBoolean(p.getWorld().getName() + ".enabled-items.SLIMEFUN_GUIDE")) return;
-							p.getInventory().addItem(SlimefunGuide.getItem(config.getBoolean("guide.default-view-book")));
+							
+							if (config.getBoolean("guide.default-view-book")) p.getInventory().addItem(SlimefunGuide.getItem(BookDesign.BOOK));
+							else p.getInventory().addItem(SlimefunGuide.getItem(BookDesign.CHEST));
 						}
 					}
 
@@ -258,25 +261,22 @@ public class SlimefunStartup extends JavaPlugin {
 
 				@EventHandler
 				public void onDisconnect(PlayerQuitEvent e) {
-					if (SlimefunGuide.history.containsKey(e.getPlayer().getUniqueId())) SlimefunGuide.history.remove(e.getPlayer().getUniqueId());
+					SlimefunGuide.history.remove(e.getPlayer().getUniqueId());
 				}
 
 			}, this);
 
 			// Initiating various Stuff and all Items with a slightly delay (0ms after the Server finished loading)
-			getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-				@Override
-				public void run() {
-					Slimefun.emeraldenchants = getServer().getPluginManager().isPluginEnabled("EmeraldEnchants");
-					SlimefunGuide.all_recipes = config.getBoolean("options.show-vanilla-recipes-in-guide");
-					MiscSetup.loadItems();
+			getServer().getScheduler().scheduleSyncDelayedTask(this, () -> {
+				Slimefun.emeraldenchants = getServer().getPluginManager().isPluginEnabled("EmeraldEnchants");
+				SlimefunGuide.all_recipes = config.getBoolean("options.show-vanilla-recipes-in-guide");
+				MiscSetup.loadItems();
 
-					for (World world: Bukkit.getWorlds()) {
-						new BlockStorage(world);
-					}
-
-					if (SlimefunItem.getByName("ANCIENT_ALTAR") != null) new AncientAltarListener((SlimefunStartup) instance);
+				for (World world: Bukkit.getWorlds()) {
+					new BlockStorage(world);
 				}
+
+				if (SlimefunItem.getByID("ANCIENT_ALTAR") != null) new AncientAltarListener((SlimefunStartup) instance);
 			}, 0);
 
 			// WorldEdit Hook to clear Slimefun Data upon //set 0 //cut or any other equivalent
@@ -285,7 +285,7 @@ public class SlimefunStartup extends JavaPlugin {
 					Class.forName("com.sk89q.worldedit.extent.Extent");
 					new WESlimefunManager();
 					System.out.println("[Slimefun] Successfully hooked into WorldEdit!");
-				} catch(Exception x) {
+				} catch (Exception x) {
 					System.err.println("[Slimefun] Failed to hook into WorldEdit!");
 					System.err.println("[Slimefun] Maybe consider updating WorldEdit or Slimefun?");
 				}
@@ -296,54 +296,49 @@ public class SlimefunStartup extends JavaPlugin {
 
 			// Armor Update Task
 			if (config.getBoolean("options.enable-armor-effects")) {
-				getServer().getScheduler().runTaskTimer(this, new Runnable() {
-
-					@Override
-					public void run() {
-						for (Player p: Bukkit.getOnlinePlayers()) {
-							for (ItemStack armor: p.getInventory().getArmorContents()) {
-								if (armor != null) {
-									if (Slimefun.hasUnlocked(p, armor, true)) {
-										if (SlimefunItem.getByItem(armor) instanceof SlimefunArmorPiece) {
-											for (PotionEffect effect: ((SlimefunArmorPiece) SlimefunItem.getByItem(armor)).getEffects()) {
-												p.removePotionEffect(effect.getType());
-												p.addPotionEffect(effect);
-											}
+				getServer().getScheduler().runTaskTimer(this, () -> {
+					for (Player p: Bukkit.getOnlinePlayers()) {
+						for (ItemStack armor: p.getInventory().getArmorContents()) {
+							if (armor != null) {
+								if (Slimefun.hasUnlocked(p, armor, true)) {
+									if (SlimefunItem.getByItem(armor) instanceof SlimefunArmorPiece) {
+										for (PotionEffect effect: ((SlimefunArmorPiece) SlimefunItem.getByItem(armor)).getEffects()) {
+											p.removePotionEffect(effect.getType());
+											p.addPotionEffect(effect);
 										}
-										if (SlimefunManager.isItemSimiliar(armor, SlimefunItem.getItem("SOLAR_HELMET"), false)) {
-											if (p.getWorld().getTime() < 12300 || p.getWorld().getTime() > 23850) {
-												if (p.getEyeLocation().getBlock().getLightFromSky() == 15) {
-													ItemEnergy.chargeInventory(p, Float.valueOf(String.valueOf(Slimefun.getItemValue("SOLAR_HELMET", "charge-amount"))));
-												}
+									}
+									if (SlimefunManager.isItemSimiliar(armor, SlimefunItem.getItem("SOLAR_HELMET"), false)) {
+										if (p.getWorld().getTime() < 12300 || p.getWorld().getTime() > 23850) {
+											if (p.getEyeLocation().getBlock().getLightFromSky() == 15) {
+												ItemEnergy.chargeInventory(p, Float.valueOf(String.valueOf(Slimefun.getItemValue("SOLAR_HELMET", "charge-amount"))));
 											}
 										}
 									}
 								}
 							}
+						}
 
-							for (ItemStack radioactive: SlimefunItem.radioactive) {
-								if (p.getInventory().containsAtLeast(radioactive, 1) || SlimefunManager.isItemSimiliar(p.getInventory().getItemInOffHand(), radioactive, true)) {
-									// Check if player is wearing the hazmat suit
-									// If so, break the loop
-									if (SlimefunManager.isItemSimiliar(SlimefunItems.SCUBA_HELMET, p.getInventory().getHelmet(), true) &&
-										SlimefunManager.isItemSimiliar(SlimefunItems.HAZMATSUIT_CHESTPLATE, p.getInventory().getChestplate(), true) &&
-										SlimefunManager.isItemSimiliar(SlimefunItems.HAZMATSUIT_LEGGINGS, p.getInventory().getLeggings(), true) &&
-										SlimefunManager.isItemSimiliar(SlimefunItems.RUBBER_BOOTS, p.getInventory().getBoots(), true)) {
-										break;
-									}
+						for (ItemStack radioactive: SlimefunItem.radioactive) {
+							if (p.getInventory().containsAtLeast(radioactive, 1) || SlimefunManager.isItemSimiliar(p.getInventory().getItemInOffHand(), radioactive, true)) {
+								// Check if player is wearing the hazmat suit
+								// If so, break the loop
+								if (SlimefunManager.isItemSimiliar(SlimefunItems.SCUBA_HELMET, p.getInventory().getHelmet(), true) &&
+									SlimefunManager.isItemSimiliar(SlimefunItems.HAZMATSUIT_CHESTPLATE, p.getInventory().getChestplate(), true) &&
+									SlimefunManager.isItemSimiliar(SlimefunItems.HAZMATSUIT_LEGGINGS, p.getInventory().getLeggings(), true) &&
+									SlimefunManager.isItemSimiliar(SlimefunItems.RUBBER_BOOTS, p.getInventory().getBoots(), true)) {
+									break;
+								}
 
-
-									// If the item is enabled in the world, then make radioactivity do its job
-									if (Slimefun.isEnabled(p, radioactive, false)) {
-										p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 400, 3));
-										p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 400, 3));
-										p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 400, 3));
-										p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 400, 3));
-										p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 400, 1));
-										p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 400, 1));
-										p.setFireTicks(400);
-										break; // Break the loop to save some calculations
-									}
+								// If the item is enabled in the world, then make radioactivity do its job
+								if (Slimefun.isEnabled(p, radioactive, false)) {
+									p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 400, 3));
+									p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 400, 3));
+									p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 400, 3));
+									p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 400, 3));
+									p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 400, 1));
+									p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 400, 1));
+									p.setFireTicks(400);
+									break; // Break the loop to save some calculations
 								}
 							}
 						}
@@ -367,7 +362,7 @@ public class SlimefunStartup extends JavaPlugin {
 					}
 				}
 			}, 80L, 60 * 60 * 20L);
-
+			
 			// Hooray!
 			System.out.println("[Slimefun] Finished!");
 
@@ -378,7 +373,7 @@ public class SlimefunStartup extends JavaPlugin {
             Bukkit.getScheduler().scheduleSyncDelayedTask(this, new BukkitRunnable() {
                 @Override
                 public void run() {
-                    exoticGarden = getServer().getPluginManager().isPluginEnabled("ExoticGarden"); //Had to do it this way, otherwise it seems disabled.
+                    exoticGarden = getServer().getPluginManager().isPluginEnabled("ExoticGarden"); // Had to do it this way, otherwise it seems disabled.
                 }
             }, 0);
 
@@ -386,10 +381,12 @@ public class SlimefunStartup extends JavaPlugin {
 
 			if (coreProtect) coreProtectAPI = ((CoreProtect)getServer().getPluginManager().getPlugin("CoreProtect")).getAPI();
 
-
 			Research.creative_research = config.getBoolean("options.allow-free-creative-research");
 
 			AutoEnchanter.max_emerald_enchantments = config.getInt("options.emerald-enchantment-limit");
+
+			SlimefunSetup.legacy_ore_washer = config.getBoolean("options.legacy-ore-washer");
+			ElectricDustWasher.legacy_dust_washer = config.getBoolean("options.legacy-dust-washer");
 
 			// Do not show /sf elevator command in our Log, it could get quite spammy
 			CSCoreLib.getLib().filterLog("([A-Za-z0-9_]{3,16}) issued server command: /sf elevator (.{0,})");
@@ -401,29 +398,31 @@ public class SlimefunStartup extends JavaPlugin {
 		myTitanHooks.titanClose();
 
 		Bukkit.getScheduler().cancelTasks(this);
-
+		
 		// Finishes all started movements/removals of block data
 		ticker.HALTED = true;
 		ticker.run();
+		
 		try {
-			for (Map.Entry<Block, Block> entry: ticker.move.entrySet()) {
-				SlimefunStartup.instance.myTitanHooks.deleteBackup(entry.getKey().getLocation());
+			for (Map.Entry<Location, Location> entry: ticker.move.entrySet()) {
+				SlimefunStartup.instance.myTitanHooks.deleteBackup(entry.getKey());
 				//BlockStorage._integrated_moveBlockInfo(entry.getKey(), entry.getValue());
-				SlimefunStartup.instance.myTitanHooks.setBackup(entry.getValue().getLocation());
+				SlimefunStartup.instance.myTitanHooks.setBackup(entry.getValue());
 			}
-			//ticker.move.clear();
 
 			for (World world: Bukkit.getWorlds()) {
 				BlockStorage storage = BlockStorage.getStorage(world);
 				if (storage != null) {
 					storage.save(true);
-				} else {
+				}
+				else {
 					System.err.println("[Slimefun] Could not save Slimefun Blocks for World \"" + world.getName() + "\"");
 				}
 			}
+
 			SlimefunBackup.start();
-		} catch(Exception x) {
-		}
+		} catch (Exception x) {}
+
 		try {
 
 			myTitanHooks.SlimeFunShutDown();
@@ -432,6 +431,7 @@ public class SlimefunStartup extends JavaPlugin {
 		{
 
 		}
+
 		// Prevent Memory Leaks
 		config = null;
 		researches = null;
@@ -456,6 +456,7 @@ public class SlimefunStartup extends JavaPlugin {
 		Variables.jump = null;
 		Variables.mode = null;
 		SlimefunGuide.history = null;
+		Variables.altarinuse = null;
 		Variables.enchanting = null;
 		Variables.backpack = null;
 		Variables.soulbound = null;
@@ -497,9 +498,6 @@ public class SlimefunStartup extends JavaPlugin {
 			p.closeInventory();
 		}
 	}
-
-
-
 	public static Config getCfg() {
 		return config;
 	}
@@ -517,7 +515,7 @@ public class SlimefunStartup extends JavaPlugin {
 	}
 
 	public static int randomize(int max) {
-		if (max < 1) return  0;
+		if (max < 1) return 0;
 		return CSCoreLib.randomizer().nextInt(max);
 	}
 

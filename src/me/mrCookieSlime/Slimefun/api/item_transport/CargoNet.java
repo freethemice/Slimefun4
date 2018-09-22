@@ -1,118 +1,216 @@
 package me.mrCookieSlime.Slimefun.api.item_transport;
 
-import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu.MenuClickHandler;
-import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ClickAction;
-import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.Item.CustomItem;
-import me.mrCookieSlime.CSCoreLibPlugin.general.Math.DoubleHandler;
-import me.mrCookieSlime.CSCoreLibPlugin.general.Particles.MC_1_8.ParticleEffect;
-import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
-import me.mrCookieSlime.Slimefun.Setup.SlimefunManager.DataType;
-import me.mrCookieSlime.Slimefun.SlimefunStartup;
-import me.mrCookieSlime.Slimefun.api.BlockStorage;
-import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
-import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
-import me.mrCookieSlime.Slimefun.holograms.CargoHologram;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.material.MaterialData;
 
-import java.util.*;
+import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu.MenuClickHandler;
+import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ClickAction;
+import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.Item.CustomItem;
+import me.mrCookieSlime.CSCoreLibPlugin.general.Math.DoubleHandler;
+import me.mrCookieSlime.Slimefun.SlimefunStartup;
+import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
+import me.mrCookieSlime.Slimefun.Setup.SlimefunManager.DataType;
+import me.mrCookieSlime.Slimefun.api.BlockStorage;
+import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
+import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
+import me.mrCookieSlime.Slimefun.api.network.Network;
+import me.mrCookieSlime.Slimefun.holograms.CargoHologram;
 
-public class CargoNet {
-	
-	public enum Axis {
-		
-		X_POSITIVE,
-		X_NEGATIVE,
-		Y_POSITIVE,
-		Y_NEGATIVE,
-		Z_POSITIVE,
-		Z_NEGATIVE,
-		UNKNOWN;
-	}
-	
+public class CargoNet extends Network {
 	public static boolean EXTRA_CHANNELS = false;
-	
+
 	private static final int RANGE = 5;
 	public static List<BlockFace> faces = Arrays.asList(BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST);
 	public static Map<Location, Integer> round_robin = new HashMap<Location, Integer>();
 	public static Set<ItemRequest> requests = new HashSet<ItemRequest>();
-	
+
 	private static int[] slots = new int[] {19, 20, 21, 28, 29, 30, 37, 38, 39};
 
-	//Chest Terminal Stuff
+	// Chest Terminal Stuff
 	private static final ChestTerminalSorter sorter = new ChestTerminalSorter();
 	public static final int[] terminal_slots = new int[] {0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 24, 27, 28, 29, 30, 31, 32, 33, 36, 37, 38, 39, 40, 41, 42};
-	private static final ItemStack terminal_noitem_item = new CustomItem(new MaterialData(Material.BARRIER), "&4No Item cached");
+	private static final ItemStack terminal_noitem_item = new CustomItem(new ItemStack(Material.BARRIER), "&4No Item cached");
 	private static final MenuClickHandler terminal_noitem_handler = new MenuClickHandler() {
-		
+
 		@Override
 		public boolean onClick(Player p, int slot, ItemStack stack, ClickAction action) {
 			return false;
 		}
 	};
-	public static void tick(final Block b) {
-		/*
-		Input/Output Nodes can be found here after a scan.
-		Input Nodes:
-		Location = The location of the node.
-		Integer = The frequency of the node.
-		Output Nodes:
-		Integer = The frequency of the node.
-		List<Location> = The locations of the corresponding input nodes
-		 */
-		final Map<Location, Integer> input = new HashMap<Location, Integer>();
-		final Map<Integer, List<Location>> output = new HashMap<Integer, List<Location>>();
 
-		//Chest Terminal Stuff
-		final Set<Location> providers = new HashSet<Location>();
-		final Set<Location> terminals = new HashSet<Location>();
-		final Set<Location> imports = new HashSet<Location>();
-		final Set<Location> exports = new HashSet<Location>();
-		final Set<Location> destinations = new HashSet<Location>();
-		
-		final Set<Location> blocks = new HashSet<Location>();
-		blocks.add(b.getLocation());
-		
-		final List<Location> visualizer1 = new ArrayList<Location>();
-		final List<Location> visualizer2 = new ArrayList<Location>();
-		
-		if (scan(b.getLocation(), blocks, visualizer1, visualizer2, Axis.UNKNOWN, input, output, terminals, providers, destinations, imports, exports).isEmpty()) {
+	public static CargoNet getNetworkFromLocation(Location l) {
+		return getNetworkFromLocation(l, CargoNet.class);
+	}
+
+	public static CargoNet getNetworkFromLocationOrCreate(Location l) {
+		CargoNet cargo_network = getNetworkFromLocation(l);
+		if (cargo_network == null) {
+			cargo_network = new CargoNet(l);
+			registerNetwork(cargo_network);
+		}
+		return cargo_network;
+	}
+
+	@Deprecated
+	public static boolean isConnected(Block b) {
+		return getNetworkFromLocation(b.getLocation()) != null;
+	}
+
+	private Set<Location> inputNodes = new HashSet<Location>();
+	private Set<Location> outputNodes = new HashSet<Location>();
+	private Set<Location> advancedOutputNodes = new HashSet<Location>();
+
+
+	//Chest Terminal Stuff
+	final Set<Location> terminals = new HashSet<Location>();
+	final Set<Location> imports = new HashSet<Location>();
+	final Set<Location> exports = new HashSet<Location>();
+
+	protected CargoNet(Location l) {
+		super(l);
+	}
+
+	public int getRange() {
+		return RANGE;
+	}
+
+	public Network.Component classifyLocation(Location l) {
+		String id = BlockStorage.checkID(l);
+		if (id == null) return null;
+		switch(id) {
+			case "CARGO_MANAGER":
+				return Component.REGULATOR;
+			case "CARGO_NODE":
+				return Component.CONNECTOR;
+			case "CARGO_NODE_INPUT":
+			case "CARGO_NODE_OUTPUT":
+			case "CARGO_NODE_OUTPUT_ADVANCED":
+			case "CT_IMPORT_BUS":
+			case "CT_EXPORT_BUS":
+			case "CHEST_TERMINAL":
+				return Component.TERMINUS;
+			default:
+				return null;
+		}
+	}
+
+	public void locationClassificationChange(Location l, Component from, Component to) {
+		if (from == Component.TERMINUS) {
+			inputNodes.remove(l);
+			outputNodes.remove(l);
+			advancedOutputNodes.remove(l);
+			terminals.remove(l);
+			imports.remove(l);
+			exports.remove(l);
+		}
+		if (to == Component.TERMINUS) {
+			switch(BlockStorage.checkID(l)) {
+				case "CARGO_NODE_INPUT":
+					inputNodes.add(l);
+					break;
+				case "CARGO_NODE_OUTPUT":
+					outputNodes.add(l);
+					break;
+				case "CARGO_NODE_OUTPUT_ADVANCED":
+					advancedOutputNodes.add(l);
+					break;
+				case "CHEST_TERMINAL":
+					terminals.add(l);
+					break;
+				case "CT_IMPORT_BUS":
+					imports.add(l);
+					break;
+				case "CT_EXPORT_BUS":
+					exports.add(l);
+					break;
+			}
+		}
+	}
+
+	public void tick(final Block b) {
+		if (!regulator.equals(b.getLocation())) {
+			CargoHologram.update(b, "&4Multiple Cargo Regulators connected");
+			return;
+		}
+		super.tick();
+		if (connectorNodes.isEmpty() && terminusNodes.isEmpty()) {
 			CargoHologram.update(b, "&7Status: &4&lOFFLINE");
+			return;
 		}
 		else {
+			CargoHologram.update(b, "&7Status: &a&lONLINE");
+
+
+			final Map<Integer, List<Location>> output = new HashMap<Integer, List<Location>>();
+
+
+			for (Location outputNode: outputNodes) {
+				Integer frequency = getFrequency(outputNode);
+				if (!output.containsKey(frequency)) {
+					output.put(frequency, new ArrayList<Location>());
+				}
+				output.get(frequency).add(outputNode);
+			}
+			for (Location outputNode: advancedOutputNodes) {
+				Integer frequency = getFrequency(outputNode);
+				if (!output.containsKey(frequency)) {
+					output.put(frequency, new ArrayList<Location>());
+				}
+				output.get(frequency).add(outputNode);
+			}
+
+			//Chest Terminal Stuff
+			final Set<Location> providers = new HashSet<Location>();
+			final Set<Location> destinations;
+			if (output.containsKey(16)) {
+				destinations = new HashSet<Location>(output.get(16));
+			} else {
+				destinations = new HashSet<Location>();
+			}
+			for (Location inputNode: inputNodes) {
+				int frequency = getFrequency(inputNode);
+				if (frequency == 16) {
+					providers.add(inputNode);
+				}
+			}
+
+			CargoNet self = this;
 			final BlockStorage storage = BlockStorage.getStorage(b.getWorld());
 			SlimefunStartup.instance.getServer().getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {
-				
+
 				@Override
 				public void run() {
-					if (BlockStorage.getBlockInfo(b, "visualizer") == null) {
-						for (int i = 0; i < visualizer1.size(); i++) {
-							Location l1 = visualizer1.get(i);
-							Location l2 = visualizer2.get(i);
-							try {
-								ParticleEffect.REDSTONE.drawLine(new Location(l1.getWorld(), l1.getBlockX() + 0.5D, l1.getBlockY() + 0.5D, l1.getBlockZ() + 0.5D), new Location(l2.getWorld(), l2.getBlockX() + 0.5D, l2.getBlockY() + 0.5D, l2.getBlockZ() + 0.5D));
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-						}
+					if (BlockStorage.getLocationInfo(b.getLocation(), "visualizer") == null) {
+						self.display();
 					}
 					//Chest Terminal Code
 					if (EXTRA_CHANNELS) {
 						for (Location bus: imports) {
 							BlockMenu menu = BlockStorage.getInventory(bus);
-							
+
 							if (menu.getItemInSlot(17) == null) {
 								Block target = getAttachedBlock(bus.getBlock());
 								ItemSlot stack = CargoManager.withdraw(bus.getBlock(), storage, target, -1);
-								
+
 								if (stack != null) {
 									menu.replaceExistingItem(17, stack.getItem());
 								}
@@ -122,42 +220,42 @@ public class CargoNet {
 								requests.add(new ItemRequest(bus, 17, menu.getItemInSlot(17), ItemTransportFlow.INSERT));
 							}
 						}
-						
+
 						for (Location bus: exports) {
 							BlockMenu menu = BlockStorage.getInventory(bus);
-							
+
 							if (menu.getItemInSlot(17) != null) {
 								Block target = getAttachedBlock(bus.getBlock());
-								
+
 								menu.replaceExistingItem(17, CargoManager.insert(bus.getBlock(), storage, target, menu.getItemInSlot(17), -1));
 							}
-							
+
 							if (menu.getItemInSlot(17) == null) {
 								List<ItemStack> items = new ArrayList<ItemStack>();
 								for (int slot: slots) {
 									ItemStack template = menu.getItemInSlot(slot);
 									if (template != null) items.add(new CustomItem(template, 1));
 								}
-								
+
 								if (!items.isEmpty()) {
-									int index = Integer.parseInt(BlockStorage.getBlockInfo(bus, "index"));
-									
+									int index = Integer.parseInt(BlockStorage.getLocationInfo(bus, "index"));
+
 									index++;
 									if (index > (items.size() - 1)) index = 0;
-									
+
 									BlockStorage.addBlockInfo(bus, "index", String.valueOf(index));
-									
+
 									requests.add(new ItemRequest(bus, 17, items.get(index), ItemTransportFlow.WITHDRAW));
 								}
 							}
 						}
-						
+
 						Iterator<ItemRequest> iterator = requests.iterator();
 						while (iterator.hasNext()) {
 							ItemRequest request = iterator.next();
 							if (terminals.contains(request.getTerminal()) || imports.contains(request.getTerminal()) || exports.contains(request.getTerminal())) {
 								BlockMenu menu = BlockStorage.getInventory(request.getTerminal());
-								
+
 								switch (request.getDirection()) {
 								case INSERT: {
 									ItemStack stack = request.getItem();
@@ -170,11 +268,11 @@ public class CargoNet {
 											break nodes;
 										}
 									}
-									
+
 									if (stack != null) {
 										menu.replaceExistingItem(request.getSlot(), stack);
 									}
-									
+
 									iterator.remove();
 									break;
 								}
@@ -185,7 +283,7 @@ public class CargoNet {
 										iterator.remove();
 										break;
 									}
-									
+
 									ItemStack stack = null;
 									ItemStack requested = request.getItem();
 									nodes:
@@ -199,7 +297,7 @@ public class CargoNet {
 											else {
 												stack = new CustomItem(stack, stack.getAmount() + is.getAmount());
 											}
-											
+
 											if (is.getAmount() == requested.getAmount()) {
 												break nodes;
 											}
@@ -208,14 +306,14 @@ public class CargoNet {
 											}
 										}
 									}
-									
+
 									if (stack != null) {
 										ItemStack prev = menu.getItemInSlot(slot);
-										
+
 										if (prev == null) menu.replaceExistingItem(slot, stack);
 										else menu.replaceExistingItem(slot, new CustomItem(stack, stack.getAmount() + prev.getAmount()));
 									}
-									
+
 									iterator.remove();
 									break;
 								}
@@ -226,31 +324,35 @@ public class CargoNet {
 							}
 						}
 					}
-					//All operations happen here: Everything gets iterated from the Input Nodes. (Apart from ChestTerminal Buses)
-					for (Map.Entry<Location, Integer> entry: input.entrySet()) {
-						Block inputTarget = getAttachedBlock(entry.getKey().getBlock());
+					// All operations happen here: Everything gets iterated from the Input Nodes. (Apart from ChestTerminal Buses)
+					for (Location input: inputNodes) {
+						Integer frequency = getFrequency(input);
+						if (frequency < 0 || frequency > 15) {
+							continue;
+						}
+						Block inputTarget = getAttachedBlock(input.getBlock());
 						ItemStack stack = null;
 						int previousSlot = -1;
-						
-						boolean roundrobin = BlockStorage.getBlockInfo(entry.getKey(), "round-robin").equals("true");
-						
+
+						boolean roundrobin = BlockStorage.getLocationInfo(input, "round-robin").equals("true");
+
 						if (inputTarget != null) {
-							ItemSlot slot = CargoManager.withdraw(entry.getKey().getBlock(), storage, inputTarget, Integer.parseInt(BlockStorage.getBlockInfo(entry.getKey(), "index")));
+							ItemSlot slot = CargoManager.withdraw(input.getBlock(), storage, inputTarget, Integer.parseInt(BlockStorage.getLocationInfo(input, "index")));
 							if (slot != null) {
 								stack = slot.getItem();
 								previousSlot = slot.getSlot();
 							}
 						}
-						
-						if (stack != null && output.containsKey(entry.getValue())) {
-							List<Location> outputlist = new ArrayList<Location>(output.get(entry.getValue()));
-							
+
+						if (stack != null && output.containsKey(frequency)) {
+							List<Location> outputlist = new ArrayList<Location>(output.get(frequency));
+
 							if (roundrobin) {
-								if (!round_robin.containsKey(entry.getKey())) {
-									round_robin.put(entry.getKey(), 0);
+								if (!round_robin.containsKey(input)) {
+									round_robin.put(input, 0);
 								}
-								
-								int c_index = round_robin.get(entry.getKey());
+
+								int c_index = round_robin.get(input);
 
 								if (c_index < outputlist.size()) {
 									for (int i = 0; i < c_index; i++) {
@@ -260,11 +362,11 @@ public class CargoNet {
 									}
 									c_index++;
 								}
-								else c_index = 0;
-								
-								round_robin.put(entry.getKey(), c_index);
+								else c_index = 1;
+
+								round_robin.put(input, c_index);
 							}
-							
+
 							destinations:
 							for (Location out: outputlist) {
 								Block target = getAttachedBlock(out.getBlock());
@@ -274,7 +376,7 @@ public class CargoNet {
 								}
 							}
 						}
-						
+
 						if (stack != null && previousSlot > -1) {
 							if (storage.hasUniversalInventory(inputTarget)) {
 								UniversalBlockMenu menu = storage.getUniversalInventory(inputTarget);
@@ -307,7 +409,7 @@ public class CargoNet {
 												item.add(is.getAmount());
 											}
 										}
-										
+
 										if (add) {
 											items.add(new StoredItem(new CustomItem(is, 1), is.getAmount()));
 										}
@@ -316,8 +418,8 @@ public class CargoNet {
 							}
 							else if (storage.hasInventory(target.getLocation())) {
 								BlockMenu menu = BlockStorage.getInventory(target.getLocation());
-								if (BlockStorage.checkID(target.getLocation()).startsWith("BARREL_") && BlockStorage.getBlockInfo(target.getLocation(), "storedItems") != null) {
-									int stored = Integer.valueOf(BlockStorage.getBlockInfo(target.getLocation(), "storedItems"));
+								if (BlockStorage.checkID(target.getLocation()).startsWith("BARREL_") && BlockStorage.getLocationInfo(target.getLocation(), "storedItems") != null) {
+									int stored = Integer.valueOf(BlockStorage.getLocationInfo(target.getLocation(), "storedItems"));
 									for (int slot: menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
 										ItemStack is = menu.getItemInSlot(slot);
 										if (is != null && CargoManager.matchesFilter(l.getBlock(), is, -1)) {
@@ -328,7 +430,7 @@ public class CargoNet {
 													item.add(is.getAmount() + stored);
 												}
 											}
-											
+
 											if (add) {
 												items.add(new StoredItem(new CustomItem(is, 1), is.getAmount() + stored));
 											}
@@ -346,7 +448,7 @@ public class CargoNet {
 													item.add(is.getAmount());
 												}
 											}
-											
+
 											if (add) {
 												items.add(new StoredItem(new CustomItem(is, 1), is.getAmount()));
 											}
@@ -365,7 +467,7 @@ public class CargoNet {
 												item.add(is.getAmount());
 											}
 										}
-										
+
 										if (add) {
 											items.add(new StoredItem(new CustomItem(is, 1), is.getAmount()));
 										}
@@ -373,29 +475,29 @@ public class CargoNet {
 								}
 							}
 						}
-						
+
 						Collections.sort(items, sorter);
-						
+
 						for (final Location l: terminals) {
 							BlockMenu menu = BlockStorage.getInventory(l);
-							int page = Integer.parseInt(BlockStorage.getBlockInfo(l, "page"));
+							int page = Integer.parseInt(BlockStorage.getLocationInfo(l, "page"));
 							if (!items.isEmpty() && items.size() < (page - 1) * terminal_slots.length + 1) {
 								page = 1;
 								BlockStorage.addBlockInfo(l, "page", String.valueOf(1));
 							}
-							
+
 							for (int i = 0; i < terminal_slots.length; i++) {
 								int slot = terminal_slots[i];
 								if (items.size() > i + (terminal_slots.length * (page - 1))) {
 									final StoredItem item = items.get(i + (terminal_slots.length * (page - 1)));
-									
+
 									ItemStack stack = item.getItem().clone();
 									ItemMeta im = stack.getItemMeta();
 									List<String> lore = new ArrayList<String>();
 									lore.add("");
-									lore.add("&7Stored Items: &r" + DoubleHandler.getFancyDouble(item.getAmount()));
-									if (stack.getMaxStackSize() > 1) lore.add("&7<Left Click: Request 1 | Right Click: Request " + (item.getAmount() > stack.getMaxStackSize() ? stack.getMaxStackSize(): item.getAmount()) + ">");
-									else lore.add("&7<Left Click: Request 1>");
+									lore.add(ChatColor.translateAlternateColorCodes('&', "&7Stored Items: &r" + DoubleHandler.getFancyDouble(item.getAmount())));
+									if (stack.getMaxStackSize() > 1) lore.add(ChatColor.translateAlternateColorCodes('&', "&7<Left Click: Request 1 | Right Click: Request " + (item.getAmount() > stack.getMaxStackSize() ? stack.getMaxStackSize(): item.getAmount()) + ">"));
+									else lore.add(ChatColor.translateAlternateColorCodes('&', "&7<Left Click: Request 1>"));
 									lore.add("");
 									if (im.hasLore()) {
 										for (String line: im.getLore()) {
@@ -406,21 +508,21 @@ public class CargoNet {
 									stack.setItemMeta(im);
 									menu.replaceExistingItem(slot, stack);
 									menu.addMenuClickHandler(slot, new MenuClickHandler() {
-										
+
 										@Override
 										public boolean onClick(Player p, int slot, ItemStack is, ClickAction action) {
 											requests.add(new ItemRequest(l, 44, new CustomItem(item.getItem(), action.isRightClicked() ? (item.getAmount() > item.getItem().getMaxStackSize() ? item.getItem().getMaxStackSize(): item.getAmount()): 1), ItemTransportFlow.WITHDRAW));
 											return false;
 										}
 									});
-									
+
 								}
 								else {
 									menu.replaceExistingItem(slot, terminal_noitem_item);
 									menu.addMenuClickHandler(slot, terminal_noitem_handler);
 								}
 							}
-							
+
 							ItemStack sent_item = menu.getItemInSlot(17);
 							if (sent_item != null) {
 								requests.add(new ItemRequest(l, 17, sent_item, ItemTransportFlow.INSERT));
@@ -428,218 +530,23 @@ public class CargoNet {
 						}
 					}
 
-					CargoHologram.update(b, "&7Status: &a&lONLINE");
 				}
 			});
 		}
 	}
-	
 
-	@SuppressWarnings("deprecation")
 	private static Block getAttachedBlock(Block block) {
-		if (block.getData() == 2) {
-			return block.getRelative(BlockFace.SOUTH);
-		}
-		else if (block.getData() == 3) {
-			return block.getRelative(BlockFace.NORTH);
-		}
-		else if (block.getData() == 4) {
-			return block.getRelative(BlockFace.EAST);
-		}
-		else if (block.getData() == 5) {
-			return block.getRelative(BlockFace.WEST);
+		if (block.getBlockData() instanceof Directional) {
+			return block.getRelative(((Directional) block.getBlockData()).getFacing().getOppositeFace());
 		}
 		return null;
 	}
 
 	private static int getFrequency(Location l) {
-		return SlimefunStartup.instance.myTitanHooks.getFrequency(l);
+		int freq = 0;
+		try {
+			freq = Integer.parseInt(BlockStorage.getLocationInfo(l).getString("frequency"));
+		} catch (Exception e) {}
+		return freq;
 	}
-	
-	public static Set<Location> scan(Location source, Set<Location> blocks, List<Location> l1, List<Location> l2, Axis exclude, Map<Location, Integer> input, Map<Integer, List<Location>> output, Set<Location> terminals, Set<Location> providers, Set<Location> destinations, Set<Location> imports, Set<Location> exports) {
-		
-		if (!exclude.equals(Axis.X_POSITIVE)) {
-			for (int i = 0; i <= RANGE; i++) {
-				Location l = new Location(source.getWorld(), source.getX() + i + 1, source.getY(), source.getZ());
-				if (!continueScan(source, l, l1, l2, Axis.X_NEGATIVE, blocks, input, output, terminals, providers, destinations, imports, exports)) return new HashSet<Location>();
-			}
-		}
-		if (!exclude.equals(Axis.X_NEGATIVE)) {
-			for (int i = 0; i <= RANGE; i++) {
-				Location l = new Location(source.getWorld(), source.getX() - i - 1, source.getY(), source.getZ());
-				if (!continueScan(source, l, l1, l2, Axis.X_POSITIVE, blocks, input, output, terminals, providers, destinations, imports, exports)) return new HashSet<Location>();
-			}
-		}
-		
-		if (!exclude.equals(Axis.Y_POSITIVE)) {
-			for (int i = 0; i <= RANGE; i++) {
-				Location l = new Location(source.getWorld(), source.getX(), source.getY() + i + 1, source.getZ());
-				if (!continueScan(source, l, l1, l2, Axis.Y_NEGATIVE, blocks, input, output, terminals, providers, destinations, imports, exports)) return new HashSet<Location>();
-			}
-		}
-		if (!exclude.equals(Axis.Y_NEGATIVE)) {
-			for (int i = 0; i <= RANGE; i++) {
-				Location l = new Location(source.getWorld(), source.getX(), source.getY() - i - 1, source.getZ());
-				if (!continueScan(source, l, l1, l2, Axis.Y_POSITIVE, blocks, input, output, terminals, providers, destinations, imports, exports)) return new HashSet<Location>();
-			}
-		}
-		
-		if (!exclude.equals(Axis.Z_POSITIVE)) {
-			for (int i = 0; i <= RANGE; i++) {
-				Location l = new Location(source.getWorld(), source.getX(), source.getY(), source.getZ() + i + 1);
-				if (!continueScan(source, l, l1, l2, Axis.Z_NEGATIVE, blocks, input, output, terminals, providers, destinations, imports, exports)) return new HashSet<Location>();
-			}
-		}
-		if (!exclude.equals(Axis.Z_NEGATIVE)) {
-			for (int i = 0; i <= RANGE; i++) {
-				Location l = new Location(source.getWorld(), source.getX(), source.getY(), source.getZ() - i - 1);
-				if (!continueScan(source, l, l1, l2, Axis.Z_POSITIVE, blocks, input, output, terminals, providers, destinations, imports, exports)) return new HashSet<Location>();
-			}
-		}
-		
-		return blocks;
-	}
-
-	private static boolean continueScan(Location source, Location l, List<Location> l1, List<Location> l2, Axis axis, Set<Location> blocks, Map<Location, Integer> input, Map<Integer, List<Location>> output, Set<Location> terminals, Set<Location> providers, Set<Location> destinations, Set<Location> imports, Set<Location> exports) {
-		if (!blocks.contains(l)) {
-			String id = BlockStorage.checkID(l);
-			if (id == null) return true;
-			if (id.equals("CARGO_MANAGER")) return false;
-			if (id.equals("CARGO_NODE")) {
-				blocks.add(l);
-				l1.add(source);
-				l2.add(l);
-				scan(l, blocks, l1, l2, axis, input, output, terminals, providers, destinations, imports, exports);
-				if (blocks.isEmpty()) return false;
-			}
-			if (id.equals("CARGO_NODE_INPUT")) {
-				blocks.add(l);
-				l1.add(source);
-				l2.add(l);
-				int freq = getFrequency(l);
-				if (freq == 16) providers.add(l);
-				else input.put(l, freq);
-			}
-			if (id.equals("CHEST_TERMINAL")) {
-				blocks.add(l);
-				l1.add(source);
-				l2.add(l);
-				terminals.add(l);
-			}
-			if (id.equals("CT_IMPORT_BUS")) {
-				blocks.add(l);
-				l1.add(source);
-				l2.add(l);
-				imports.add(l);
-			}
-			if (id.equals("CT_EXPORT_BUS")) {
-				blocks.add(l);
-				l1.add(source);
-				l2.add(l);
-				exports.add(l);
-			}
-			if (id.equals("CARGO_NODE_OUTPUT")) {
-				blocks.add(l);
-				l1.add(source);
-				l2.add(l);
-				int freq = getFrequency(l);
-
-				if (freq == 16) destinations.add(l);
-				else {
-					List<Location> list = output.containsKey(freq) ? output.get(freq): new ArrayList<Location>();
-					list.add(l);
-					output.put(freq, list);
-				}
-			}
-			if (id.equals("CARGO_NODE_OUTPUT_ADVANCED")) {
-				blocks.add(l);
-				l1.add(source);
-				l2.add(l);
-				int freq = getFrequency(l);
-
-				if (freq == 16) destinations.add(l);
-				else {
-					List<Location> list = output.containsKey(freq) ? output.get(freq): new ArrayList<Location>();
-					list.add(l);
-					output.put(freq, list);
-				}
-			}
-		}
-		return true;
-	}
-	
-	public static boolean isConnected(Block b) {
-		return passiveScan(b.getLocation(), Axis.UNKNOWN, new HashSet<Location>());
-	}
-	
-	private static boolean passiveScan(Location source, Axis exclude, Set<Location> sources) {
-		sources.add(source);
-		Set<Location> blocks = new HashSet<Location>();
-		
-		blocks.add(source);
-		
-		if (!exclude.equals(Axis.X_POSITIVE)) {
-			for (int i = 0; i <= RANGE; i++) {
-				Location l = new Location(source.getWorld(), source.getX() + i + 1, source.getY(), source.getZ());
-				if (continuePassiveScan(l, Axis.X_NEGATIVE, sources)) {
-					return true;
-				}
-			}
-		}
-		if (!exclude.equals(Axis.X_NEGATIVE)) {
-			for (int i = 0; i <= RANGE; i++) {
-				Location l = new Location(source.getWorld(), source.getX() - i - 1, source.getY(), source.getZ());
-				if (continuePassiveScan(l, Axis.X_POSITIVE, sources)) {
-					return true;
-				}
-			}
-		}
-		
-		if (!exclude.equals(Axis.Y_POSITIVE)) {
-			for (int i = 0; i <= RANGE; i++) {
-				Location l = new Location(source.getWorld(), source.getX(), source.getY() + i + 1, source.getZ());
-				if (continuePassiveScan(l, Axis.Y_NEGATIVE, sources)) {
-					return true;
-				}
-			}
-		}
-		if (!exclude.equals(Axis.Y_NEGATIVE)) {
-			for (int i = 0; i <= RANGE; i++) {
-				Location l = new Location(source.getWorld(), source.getX(), source.getY() - i - 1, source.getZ());
-				if (continuePassiveScan(l, Axis.Y_POSITIVE, sources)) {
-					return true;
-				}
-			}
-		}
-		
-		if (!exclude.equals(Axis.Z_POSITIVE)) {
-			for (int i = 0; i <= RANGE; i++) {
-				Location l = new Location(source.getWorld(), source.getX(), source.getY(), source.getZ() + i + 1);
-				if (continuePassiveScan(l, Axis.Z_NEGATIVE, sources)) {
-					return true;
-				}
-			}
-		}
-		if (!exclude.equals(Axis.Z_NEGATIVE)) {
-			for (int i = 0; i <= RANGE; i++) {
-				Location l = new Location(source.getWorld(), source.getX(), source.getY(), source.getZ() - i - 1);
-				if (continuePassiveScan(l, Axis.Z_POSITIVE, sources)) {
-					return true;
-				}
-			}
-		}
-		
-		return false;
-	}
-
-	private static boolean continuePassiveScan(Location l, Axis axis, Set<Location> sources) {
-		if (!sources.contains(l)) {
-			String id = BlockStorage.checkID(l);
-			if (id == null) return false;
-			if (id.equals("CARGO_MANAGER")) return true;
-			if (id.equals("CARGO_NODE")) return passiveScan(l, axis, sources);
-		}
-		return false;
-	}
-
 }

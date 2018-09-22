@@ -5,13 +5,16 @@ import me.mrCookieSlime.Slimefun.Lists.RecipeType;
 import me.mrCookieSlime.Slimefun.Objects.Category;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunArmorPiece;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.VanillaItem;
 import me.mrCookieSlime.Slimefun.SlimefunStartup;
-import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SlimefunManager {
 	
@@ -33,7 +36,7 @@ public class SlimefunManager {
 		}
 	}
 	
-	public static void registerArmorSet(ItemStack baseComponent, ItemStack[] items, String idSyntax, boolean slimefun) {
+	public static void registerArmorSet(ItemStack baseComponent, ItemStack[] items, String idSyntax, boolean slimefun, boolean vanilla) {
 		String[] components = new String[] {"_HELMET", "_CHESTPLATE", "_LEGGINGS", "_BOOTS"};
 		Category cat = Categories.ARMOR;
 		List<ItemStack[]> recipes = new ArrayList<ItemStack[]>();
@@ -42,11 +45,24 @@ public class SlimefunManager {
 		recipes.add(new ItemStack[] {baseComponent, baseComponent, baseComponent, baseComponent, null, baseComponent, baseComponent, null, baseComponent});
 		recipes.add(new ItemStack[] {null, null, null, baseComponent, null, baseComponent, baseComponent, null, baseComponent});
 		for (int i = 0; i < 4; i++) {
-			new SlimefunItem(cat, items[i], idSyntax + components[i], RecipeType.ARMOR_FORGE, recipes.get(i)).register(slimefun);
+			if (vanilla) {
+				new VanillaItem(cat, items[i], idSyntax + components[i], RecipeType.ARMOR_FORGE, recipes.get(i)).register(slimefun);
+			} else {
+				new SlimefunItem(cat, items[i], idSyntax + components[i], RecipeType.ARMOR_FORGE, recipes.get(i)).register(slimefun);
+			}
 		}
 	}
-	
-	public static List<Material> data_safe = Arrays.asList(Material.WOOL, Material.CARPET, Material.STAINED_CLAY, Material.STAINED_GLASS, Material.STAINED_GLASS_PANE, Material.INK_SACK, Material.STONE, Material.COAL, Material.SKULL_ITEM, Material.RAW_FISH, Material.COOKED_FISH);
+
+	//ToDO: ALl all
+	//Charcoal=coal?
+//	public static List<Material> data_safe = Arrays.asList(Material.WHITE_WOOL,
+//			Material.WHITE_CARPET,
+//			Material.WHITE_TERRACOTTA,
+//			Material.WHITE_STAINED_GLASS,
+//			Material.WHITE_STAINED_GLASS_PANE,
+//			Material.INK_SAC,
+//			Material.STONE,
+//			Material.COAL, Material.SKULL_ITEM, Material.RAW_FISH, Material.COOKED_FISH);
 	
 	public static boolean isItemSimiliar(ItemStack item, ItemStack SFitem, boolean lore) {
 		return isItemSimiliar(item, SFitem, lore, DataType.IF_COLORED);
@@ -62,50 +78,7 @@ public class SlimefunManager {
 	
 	@SuppressWarnings("deprecation")
 	public static boolean isItemSimiliar(ItemStack item, ItemStack SFitem, boolean lore, DataType data) {
-		return SlimefunStartup.instance.myTitanHooks.isItemSimiliar(item, SFitem, lore,data, data_safe);
-		/*
-		if (item == null) return SFitem == null;
-		if (SFitem == null) return false;
-		
-		if (item.getType() == SFitem.getType() && item.getAmount() >= SFitem.getAmount()) {
-			if (data.equals(DataType.ALWAYS) || (data.equals(DataType.IF_COLORED) && data_safe.contains(item.getType()))) {
-				if (data_safe.contains(item.getType())) {
-					if (item.getData().getData() != SFitem.getData().getData()) {
-						if (!(SFitem.getDurability() == item.getData().getData() && SFitem.getData().getData() == item.getDurability())) return false;
-					}
-				}
-				else if (data.equals(DataType.ALWAYS) && item.getDurability() != SFitem.getDurability()) {
-					return false;
-				}
-			}
-			
-			if (item.hasItemMeta() && SFitem.hasItemMeta()) {
-				if (item.getItemMeta().hasDisplayName() && SFitem.getItemMeta().hasDisplayName()) {
-					if (item.getItemMeta().getDisplayName().equals(SFitem.getItemMeta().getDisplayName())) {
-						if (lore) {
-							if (item.getItemMeta().hasLore() && SFitem.getItemMeta().hasLore()) {
-								return equalsLore(item.getItemMeta().getLore(), SFitem.getItemMeta().getLore());
-							}
-							else return !item.getItemMeta().hasLore() && !SFitem.getItemMeta().hasLore();
-						}
-						else return true;
-					}
-					else return false;
-				}
-				else if (!item.getItemMeta().hasDisplayName() && !SFitem.getItemMeta().hasDisplayName()) {
-					if (lore) {
-						if (item.getItemMeta().hasLore() && SFitem.getItemMeta().hasLore()) {
-							return equalsLore(item.getItemMeta().getLore(), SFitem.getItemMeta().getLore());
-						}
-						else return !item.getItemMeta().hasLore() && !SFitem.getItemMeta().hasLore();
-					}
-					else return true;
-				}
-				else return false;
-			} 
-			else return !item.hasItemMeta() && !SFitem.hasItemMeta();
-		}
-		else return false;*/
+		return SlimefunStartup.instance.myTitanHooks.isItemSimiliar(item, SFitem, lore,data);
 	}
 	
 	public static boolean equalsLore(List<String> lore, List<String> lore2) {

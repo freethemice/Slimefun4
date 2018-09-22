@@ -12,25 +12,17 @@ public class Files {
 	
 	public static void cleanup() {
 		if (!RESEARCHES.exists()) {
-			System.err.println("################################################");
-			System.err.println("################################################");
-			System.err.println("############### = - ERROR - = ##################");
-			System.err.println("################################################");
-			System.err.println("################################################");
+			System.err.println("###############################################");
+			System.err.println("############## = -  INFO  - = #################");
+			System.err.println("###############################################");
 			System.err.println("      ");
 			System.err.println("Slimefun Warning:");
 			System.err.println("         ");
-			System.err.println("Slimefun has detected that your Files are etiher");
+			System.err.println("Slimefun has detected that your Files are either");
 			System.err.println("outdated or do not exist. We generated new Files");
 			System.err.println("instead otherwise Slimefun would not work. If you");
 			System.err.println("have used Slimefun before, your Settings are now");
 			System.err.println("gone. But therefore Slimefun works!");
-			System.err.println("        ");
-			System.err.println("################################################");
-			System.err.println("################################################");
-			System.err.println("############### = - ERROR - = ##################");
-			System.err.println("################################################");
-			System.err.println("################################################");
 			delete(new File("plugins/Slimefun"));
 			delete(new File("data-storage/Slimefun"));
 		}

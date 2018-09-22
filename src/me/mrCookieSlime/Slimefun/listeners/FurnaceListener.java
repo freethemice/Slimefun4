@@ -24,9 +24,7 @@ public class FurnaceListener implements Listener {
 	public void onBurn(FurnaceBurnEvent e) {
 		if (BlockStorage.check(e.getBlock()) != null && BlockStorage.check(e.getBlock()) instanceof EnhancedFurnace) {
 			EnhancedFurnace furnace = (EnhancedFurnace) BlockStorage.check(e.getBlock());
-			if (furnace.getFuelEfficiency() > 0) {
-				e.setBurnTime(((int) ((1.0 + 0.2 * furnace.getFuelEfficiency()) * e.getBurnTime())));
-			}
+			if (furnace.getFuelEfficiency() > 0) e.setBurnTime(((int) ((1.0 + 0.2 * furnace.getFuelEfficiency()) * e.getBurnTime())));
 		}
 	}
 

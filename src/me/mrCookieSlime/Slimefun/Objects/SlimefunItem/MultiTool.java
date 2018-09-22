@@ -1,12 +1,13 @@
 package me.mrCookieSlime.Slimefun.Objects.SlimefunItem;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import me.mrCookieSlime.Slimefun.Lists.Categories;
 import me.mrCookieSlime.Slimefun.Lists.RecipeType;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
-import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.bukkit.inventory.ItemStack;
 
 public class MultiTool extends DamagableChargableItem {
 	

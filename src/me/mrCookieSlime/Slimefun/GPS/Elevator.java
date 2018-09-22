@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
 import me.mrCookieSlime.CSCoreLibPlugin.general.Chat.TellRawMessage;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Chat.TellRawMessage.HoverAction;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
@@ -16,13 +22,6 @@ import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.Item.CustomItem;
 import me.mrCookieSlime.Slimefun.Setup.Messages;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.MaterialData;
-
 public class Elevator {
 	
 	public static List<UUID> ignored = new ArrayList<UUID>();
@@ -30,7 +29,7 @@ public class Elevator {
 	public static void openEditor(Player p, final Block b) {
 		ChestMenu menu = new ChestMenu("Elevator Settings");
 		
-		menu.addItem(4, new CustomItem(new MaterialData(Material.NAME_TAG), "&7Floor Name &e(Click to edit)", "", "&r" + ChatColor.translateAlternateColorCodes('&', BlockStorage.getBlockInfo(b, "floor"))));
+		menu.addItem(4, new CustomItem(new ItemStack(Material.NAME_TAG), "&7Floor Name &e(Click to edit)", "", "&r" + ChatColor.translateAlternateColorCodes('&', BlockStorage.getLocationInfo(b.getLocation(), "floor"))));
 		menu.addMenuClickHandler(4, new MenuClickHandler() {
 			
 			@Override
@@ -75,7 +74,7 @@ public class Elevator {
 		for (int y = b.getWorld().getMaxHeight(); y > 0; y--) {
 			Block block = b.getWorld().getBlockAt(b.getX(), y, b.getZ());
 			if (BlockStorage.check(block, "ELEVATOR_PLATE")) {
-				String floor = ChatColor.translateAlternateColorCodes('&', BlockStorage.getBlockInfo(block, "floor"));
+				String floor = ChatColor.translateAlternateColorCodes('&', BlockStorage.getLocationInfo(block.getLocation(), "floor"));
 				if (block.getY() == b.getY()) {
 					tellraw.addText("&7> " + index + ". &r" + floor + "\n");
 					tellraw.addHoverEvent(HoverAction.SHOW_TEXT, "\n&eThis is the Floor you are currently on:\n&r" + floor + "\n");

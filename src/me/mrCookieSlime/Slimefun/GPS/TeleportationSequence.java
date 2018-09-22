@@ -4,14 +4,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import me.mrCookieSlime.CSCoreLibPlugin.general.Particles.MC_1_8.ParticleEffect;
 import me.mrCookieSlime.CSCoreLibPlugin.general.World.TitleBuilder;
 import me.mrCookieSlime.CSCoreLibPlugin.general.World.TitleBuilder.TitleType;
 import me.mrCookieSlime.Slimefun.SlimefunStartup;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -52,8 +49,8 @@ public class TeleportationSequence {
 		players.remove(uuid);
 		if (p != null) {
 			try {
-				TitleBuilder title = (TitleBuilder) new TitleBuilder(20, 60, 20).addText("&4Teleportation cancelled");
-				TitleBuilder subtitle = (TitleBuilder) new TitleBuilder(20, 60, 20).addText("&40%");
+				TitleBuilder title = (TitleBuilder) new TitleBuilder(20, 60, 20).addText(ChatColor.translateAlternateColorCodes('&', "&4Teleportation cancelled"));
+				TitleBuilder subtitle = (TitleBuilder) new TitleBuilder(20, 60, 20).addText(ChatColor.translateAlternateColorCodes('&', "&40%"));
 				
 				title.send(TitleType.TITLE, p);
 				subtitle.send(TitleType.SUBTITLE, p);
@@ -68,8 +65,8 @@ public class TeleportationSequence {
 		if (isValid(p, source)) {
 			try {
 				if (progress > 99) {
-					TitleBuilder title = (TitleBuilder) new TitleBuilder(20, 60, 20).addText("&3Teleported!");
-					TitleBuilder subtitle = (TitleBuilder) new TitleBuilder(20, 60, 20).addText("&b100%");
+					TitleBuilder title = (TitleBuilder) new TitleBuilder(20, 60, 20).addText(ChatColor.translateAlternateColorCodes('&', "&3Teleported!"));
+					TitleBuilder subtitle = (TitleBuilder) new TitleBuilder(20, 60, 20).addText(ChatColor.translateAlternateColorCodes('&', "&b100%"));
 					
 					title.send(TitleType.TITLE, p);
 					subtitle.send(TitleType.SUBTITLE, p);
@@ -78,21 +75,21 @@ public class TeleportationSequence {
 					
 					if (resistance) {
 						p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 600, 20));
-						p.sendMessage("&b&lYou have been given 30 Seconds of Invulnerability!");
+						p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b&lYou have been given 30 Seconds of Invulnerability!"));
 					}
 					
-					ParticleEffect.PORTAL.display(new Location(destination.getWorld(), destination.getX(), destination.getY() + 1, destination.getZ()), 0.2F, 0.8F, 0.2F, 1, progress * 2);
+					destination.getWorld().spawnParticle(Particle.PORTAL,new Location(destination.getWorld(), destination.getX(), destination.getY() + 1, destination.getZ()),progress * 2, 0.2F, 0.8F, 0.2F );
 					destination.getWorld().playSound(destination, Sound.ENTITY_BLAZE_DEATH, 2F, 1.4F);
 					players.remove(uuid);
 				}
 				else {
-					TitleBuilder title = (TitleBuilder) new TitleBuilder(0, 60, 0).addText("&3Teleporting...");
-					TitleBuilder subtitle = (TitleBuilder) new TitleBuilder(0, 60, 0).addText("&b" + progress + "%");
+					TitleBuilder title = (TitleBuilder) new TitleBuilder(0, 60, 0).addText(ChatColor.translateAlternateColorCodes('&', "&3Teleporting..."));
+					TitleBuilder subtitle = (TitleBuilder) new TitleBuilder(0, 60, 0).addText(ChatColor.translateAlternateColorCodes('&', "&b" + progress + "%"));
 					
 					title.send(TitleType.TITLE, p);
 					subtitle.send(TitleType.SUBTITLE, p);
 					
-					ParticleEffect.PORTAL.display(source, 0.2F, 0.8F, 0.2F, 1, progress * 2);
+					source.getWorld().spawnParticle(Particle.PORTAL, source, progress * 2, 0.2F, 0.8F, 0.2F);
 					source.getWorld().playSound(source, Sound.UI_BUTTON_CLICK, 1.7F, 0.6F);
 					
 					Bukkit.getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {

@@ -1,5 +1,12 @@
 package me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import me.mrCookieSlime.CSCoreLibPlugin.CSCoreLib;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu.AdvancedMenuClickHandler;
@@ -20,6 +27,7 @@ import me.mrCookieSlime.Slimefun.api.energy.EnergyTicker;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
 import me.mrCookieSlime.Slimefun.api.item_transport.ItemTransportFlow;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,9 +37,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.material.MaterialData;
-
-import java.util.*;
 
 public abstract class AGenerator extends SlimefunItem {
 
@@ -82,10 +87,16 @@ public abstract class AGenerator extends SlimefunItem {
 				BlockMenu inv = BlockStorage.getInventory(b);
 				if (inv != null) {
 					for (int slot: getInputSlots()) {
-						if (inv.getItemInSlot(slot) != null) b.getWorld().dropItemNaturally(b.getLocation(), inv.getItemInSlot(slot));
+						if (inv.getItemInSlot(slot) != null) {
+							b.getWorld().dropItemNaturally(b.getLocation(), inv.getItemInSlot(slot));
+							inv.replaceExistingItem(slot, null);
+						}
 					}
 					for (int slot: getOutputSlots()) {
-						if (inv.getItemInSlot(slot) != null) b.getWorld().dropItemNaturally(b.getLocation(), inv.getItemInSlot(slot));
+						if (inv.getItemInSlot(slot) != null) {
+							b.getWorld().dropItemNaturally(b.getLocation(), inv.getItemInSlot(slot));
+							inv.replaceExistingItem(slot, null);
+						}
 					}
 				}
 				progress.remove(b.getLocation());
@@ -135,10 +146,16 @@ public abstract class AGenerator extends SlimefunItem {
 				BlockMenu inv = BlockStorage.getInventory(b);
 				if (inv != null) {
 					for (int slot: getInputSlots()) {
-						if (inv.getItemInSlot(slot) != null) b.getWorld().dropItemNaturally(b.getLocation(), inv.getItemInSlot(slot));
+						if (inv.getItemInSlot(slot) != null) {
+							b.getWorld().dropItemNaturally(b.getLocation(), inv.getItemInSlot(slot));
+							inv.replaceExistingItem(slot, null);
+						}
 					}
 					for (int slot: getOutputSlots()) {
-						if (inv.getItemInSlot(slot) != null) b.getWorld().dropItemNaturally(b.getLocation(), inv.getItemInSlot(slot));
+						if (inv.getItemInSlot(slot) != null) {
+							b.getWorld().dropItemNaturally(b.getLocation(), inv.getItemInSlot(slot));
+							inv.replaceExistingItem(slot, null);
+						}
 					}
 				}
 				progress.remove(b.getLocation());
@@ -150,10 +167,9 @@ public abstract class AGenerator extends SlimefunItem {
 		this.registerDefaultRecipes();
 	}
 	
-	@SuppressWarnings("deprecation")
 	private void constructMenu(BlockMenuPreset preset) {
 		for (int i: border) {
-			preset.addItem(i, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 7), " "),
+			preset.addItem(i, new CustomItem(new ItemStack(Material.GRAY_STAINED_GLASS_PANE), " "),
 			new MenuClickHandler() {
 
 				@Override
@@ -164,7 +180,7 @@ public abstract class AGenerator extends SlimefunItem {
 			});
 		}
 		for (int i: border_in) {
-			preset.addItem(i, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 9), " "),
+			preset.addItem(i, new CustomItem(new ItemStack(Material.CYAN_STAINED_GLASS_PANE), " "),
 			new MenuClickHandler() {
 
 				@Override
@@ -175,7 +191,7 @@ public abstract class AGenerator extends SlimefunItem {
 			});
 		}
 		for (int i: border_out) {
-			preset.addItem(i, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 1), " "),
+			preset.addItem(i, new CustomItem(new ItemStack(Material.ORANGE_STAINED_GLASS_PANE), " "),
 			new MenuClickHandler() {
 
 				@Override
@@ -201,7 +217,7 @@ public abstract class AGenerator extends SlimefunItem {
 			});
 		}
 		
-		preset.addItem(22, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 15), " "),
+		preset.addItem(22, new CustomItem(new ItemStack(Material.BLACK_STAINED_GLASS_PANE), " "),
 		new MenuClickHandler() {
 
 			@Override
@@ -284,7 +300,7 @@ public abstract class AGenerator extends SlimefunItem {
 						else if (SlimefunManager.isItemSimiliar(fuel, SlimefunItems.BUCKET_OF_OIL, true)) {
 							pushItems(l, new ItemStack[] {new ItemStack(Material.BUCKET)});
 						}
-						BlockStorage.getInventory(l).replaceExistingItem(22, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 15), " "));
+						BlockStorage.getInventory(l).replaceExistingItem(22, new CustomItem(new ItemStack(Material.BLACK_STAINED_GLASS_PANE), " "));
 						
 						progress.remove(l);
 						processing.remove(l);
@@ -333,7 +349,7 @@ public abstract class AGenerator extends SlimefunItem {
 		int size = BlockStorage.getInventory(l).toInventory().getSize();
 		Inventory inv = Bukkit.createInventory(null, size);
 		for (int i = 0; i < size; i++) {
-			inv.setItem(i, new CustomItem(Material.COMMAND, " &4ALL YOUR PLACEHOLDERS ARE BELONG TO US", 0));
+			inv.setItem(i, new CustomItem(Material.COMMAND_BLOCK, " &4ALL YOUR PLACEHOLDERS ARE BELONG TO US", 0));
 		}
 		for (int slot: getOutputSlots()) {
 			inv.setItem(slot, BlockStorage.getInventory(l).getItemInSlot(slot));

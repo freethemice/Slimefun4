@@ -1,5 +1,14 @@
 package me.mrCookieSlime.Slimefun.holograms;
 
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu.MenuClickHandler;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ClickAction;
@@ -11,22 +20,11 @@ import me.mrCookieSlime.CSCoreLibPlugin.general.World.ArmorStandFactory;
 import me.mrCookieSlime.Slimefun.Setup.Messages;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 
-
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.MaterialData;
-
 public class Projector {
 	
 	public static ArmorStand getArmorStand(Block projector) {
-		String nametag = ChatColor.translateAlternateColorCodes('&', BlockStorage.getBlockInfo(projector, "text"));
-		double offset = Double.valueOf(BlockStorage.getBlockInfo(projector, "offset"));
+		String nametag = ChatColor.translateAlternateColorCodes('&', BlockStorage.getLocationInfo(projector.getLocation(), "text"));
+		double offset = Double.valueOf(BlockStorage.getLocationInfo(projector.getLocation(), "offset"));
 		Location l = new Location(projector.getWorld(), projector.getX() + 0.5, projector.getY() + offset, projector.getZ() + 0.5);
 		
 		for (Entity n: l.getChunk().getEntities()) {
@@ -43,7 +41,7 @@ public class Projector {
 	public static void openEditor(Player p, final Block projector) {
 		ChestMenu menu = new ChestMenu("Hologram Settings");
 		
-		menu.addItem(0, new CustomItem(new MaterialData(Material.NAME_TAG), "&7Text &e(Click to edit)", "", "&r" + ChatColor.translateAlternateColorCodes('&', BlockStorage.getBlockInfo(projector, "text"))));
+		menu.addItem(0, new CustomItem(new ItemStack(Material.NAME_TAG), "&7Text &e(Click to edit)", "", "&r" + ChatColor.translateAlternateColorCodes('&', BlockStorage.getLocationInfo(projector.getLocation(), "text"))));
 		menu.addMenuClickHandler(0, new MenuClickHandler() {
 			
 			@Override
@@ -65,12 +63,12 @@ public class Projector {
 			}
 		});
 		
-		menu.addItem(1, new CustomItem(new MaterialData(Material.WATCH), "&7Offset: &e" + DoubleHandler.fixDouble(Double.valueOf(BlockStorage.getBlockInfo(projector, "offset")) + 1.0D), "", "&rLeft Click: &7+0.1", "&rRight Click: &7-0.1"));
+		menu.addItem(1, new CustomItem(new ItemStack(Material.CLOCK), "&7Offset: &e" + DoubleHandler.fixDouble(Double.valueOf(BlockStorage.getLocationInfo(projector.getLocation(), "offset")) + 1.0D), "", "&rLeft Click: &7+0.1", "&rRight Click: &7-0.1"));
 		menu.addMenuClickHandler(1, new MenuClickHandler() {
 			
 			@Override
 			public boolean onClick(Player p, int arg1, ItemStack arg2, ClickAction arg3) {
-				double offset = DoubleHandler.fixDouble(Double.valueOf(BlockStorage.getBlockInfo(projector, "offset")) + (arg3.isRightClicked() ? -0.1F: 0.1F));
+				double offset = DoubleHandler.fixDouble(Double.valueOf(BlockStorage.getLocationInfo(projector.getLocation(), "offset")) + (arg3.isRightClicked() ? -0.1F: 0.1F));
 				ArmorStand hologram = getArmorStand(projector);
 				Location l = new Location(projector.getWorld(), projector.getX() + 0.5, projector.getY() + offset, projector.getZ() + 0.5);
 				hologram.teleport(l);

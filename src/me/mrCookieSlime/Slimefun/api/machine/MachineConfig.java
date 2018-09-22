@@ -1,10 +1,10 @@
 package me.mrCookieSlime.Slimefun.api.machine;
 
-import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 
 public class MachineConfig extends Config {
 	

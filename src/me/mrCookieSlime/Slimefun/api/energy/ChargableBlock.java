@@ -1,20 +1,20 @@
 package me.mrCookieSlime.Slimefun.api.energy;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Math.DoubleHandler;
 import me.mrCookieSlime.CSCoreLibPlugin.general.World.CustomSkull;
 import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Skull;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class ChargableBlock {
 	
@@ -71,7 +71,7 @@ public class ChargableBlock {
 	}
 	
 	public static int getCharge(Location l) {
-		String charge = BlockStorage.getBlockInfo(l, "energy-charge");
+		String charge = BlockStorage.getLocationInfo(l, "energy-charge");
 		if (charge != null) return Integer.parseInt(charge);
 		else {
 			BlockStorage.addBlockInfo(l, "energy-charge", "0", false);
@@ -120,7 +120,8 @@ public class ChargableBlock {
 						else CustomSkull.setSkull(b, "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2EyNTY5NDE1YzE0ZTMxYzk4ZWM5OTNhMmY5OWU2ZDY0ODQ2ZGIzNjdhMTNiMTk5OTY1YWQ5OWM0MzhjODZjIn19fQ==");
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					l.getBlock().setType(Material.PLAYER_HEAD);
+					SlimefunStartup.instance.myTitanHooks.updateTexture(l);
 				}
 			}
 		});
@@ -173,7 +174,7 @@ public class ChargableBlock {
 	}
 	
 	public static int getMaxCharge(Location l) {
-		Config cfg = BlockStorage.getBlockInfo(l);
+		Config cfg = BlockStorage.getLocationInfo(l);
 		if (!cfg.contains("id")) {
 			BlockStorage.clearBlockInfo(l);
 			return 0;

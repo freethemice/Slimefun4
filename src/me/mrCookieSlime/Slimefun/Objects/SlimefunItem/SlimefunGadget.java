@@ -1,11 +1,12 @@
 package me.mrCookieSlime.Slimefun.Objects.SlimefunItem;
 
-import me.mrCookieSlime.Slimefun.Lists.RecipeType;
-import me.mrCookieSlime.Slimefun.Objects.Category;
-import org.bukkit.inventory.ItemStack;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import me.mrCookieSlime.Slimefun.Lists.RecipeType;
+import me.mrCookieSlime.Slimefun.Objects.Category;
+
+import org.bukkit.inventory.ItemStack;
 
 public class SlimefunGadget extends SlimefunItem {
 	

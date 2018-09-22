@@ -1,14 +1,15 @@
 package me.mrCookieSlime.Slimefun.Objects.SlimefunItem;
 
-import me.mrCookieSlime.Slimefun.Lists.RecipeType;
-import me.mrCookieSlime.Slimefun.Objects.Category;
-import me.mrCookieSlime.Slimefun.Objects.MultiBlock;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import me.mrCookieSlime.Slimefun.Lists.RecipeType;
+import me.mrCookieSlime.Slimefun.Objects.Category;
+import me.mrCookieSlime.Slimefun.Objects.MultiBlock;
+
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
 public class SlimefunMachine extends SlimefunItem {
 	
@@ -77,7 +78,7 @@ public class SlimefunMachine extends SlimefunItem {
 		List<Material> mats = new ArrayList<Material>();
 		for (ItemStack i: this.getRecipe()) {
 			if (i == null) mats.add(null);
-			else if (i.getType() == Material.CAULDRON_ITEM) mats.add(Material.CAULDRON);
+			else if (i.getType() == Material.CAULDRON) mats.add(Material.CAULDRON);
 			else if (i.getType() == Material.FLINT_AND_STEEL) mats.add(Material.FIRE);
 			else mats.add(i.getType());
 		}

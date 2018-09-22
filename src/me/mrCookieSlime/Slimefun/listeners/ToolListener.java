@@ -49,12 +49,13 @@ public class ToolListener implements Listener {
 			return;
 		}
 		ItemStack item = e.getItemInHand();
-		if (item != null && item.getType() == Material.INK_SACK) return;
+		if (item != null && item.getType() == Material.INK_SAC) return;
 		SlimefunItem sfItem = SlimefunItem.getByItem(item);
-		if (sfItem != null && !(sfItem instanceof NotPlaceable)){
-			BlockStorage.addBlockInfo(e.getBlock(), "id", sfItem.getName(), true);
-			if (SlimefunItem.blockhandler.containsKey(sfItem.getName())) {
-				SlimefunItem.blockhandler.get(sfItem.getName()).onPlace(e.getPlayer(), e.getBlock(), sfItem);
+		if (sfItem != null && !(sfItem instanceof NotPlaceable) && !SlimefunStartup.instance.myTitanHooks.axeCheck(item)){
+
+			BlockStorage.addBlockInfo(e.getBlock(), "id", sfItem.getID(), true);
+			if (SlimefunItem.blockhandler.containsKey(sfItem.getID())) {
+				SlimefunItem.blockhandler.get(sfItem.getID()).onPlace(e.getPlayer(), e.getBlock(), sfItem);
 			}
 		}
 		else {
@@ -99,23 +100,23 @@ public class ToolListener implements Listener {
 			e.setCancelled(true);
 			Slimefun.getGPSNetwork().addWaypoint(e.getPlayer(), e.getBlock().getLocation());
 		}
-		else if (SlimefunManager.isItemSimiliar(item, SlimefunItems.PRESENT, false)) {
+		else if (SlimefunManager.isItemSimiliar(item, SlimefunItems.CHRISTMAS_PRESENT, false)) {
 			e.setCancelled(true);
 			PlayerInventory.consumeItemInHand(e.getPlayer());
 			FireworkShow.launchRandom(e.getPlayer(), 3);
 			List<ItemStack> gifts = new ArrayList<ItemStack>();
 			for (int i = 0; i < 2; i++) {
-				gifts.add(new CustomItem(SlimefunItems.HOT_CHOCOLATE, 1));
-				gifts.add(new CustomItem(SlimefunItems.CHOCOLATE_APPLE, 4));
-				gifts.add(new CustomItem(SlimefunItems.CARAMEL_APPLE, 4));
+				gifts.add(new CustomItem(SlimefunItems.CHRISTMAS_HOT_CHOCOLATE, 1));
+				gifts.add(new CustomItem(SlimefunItems.CHRISTMAS_CHOCOLATE_APPLE, 4));
+				gifts.add(new CustomItem(SlimefunItems.CHRISTMAS_CARAMEL_APPLE, 4));
 				gifts.add(new CustomItem(SlimefunItems.CHRISTMAS_CAKE, 4));
 				gifts.add(new CustomItem(SlimefunItems.CHRISTMAS_COOKIE, 8));
-				gifts.add(new CustomItem(SlimefunItems.PRESENT, 1));
-				gifts.add(new CustomItem(SlimefunItems.EGG_NOG, 1));
-				gifts.add(new CustomItem(SlimefunItems.MILK, 1));
-				gifts.add(new CustomItem(SlimefunItems.APPLE_CIDER, 1));
-				gifts.add(new CustomItem(SlimefunItems.FRUIT_CAKE, 4));
-				gifts.add(new CustomItem(SlimefunItems.APPLE_PIE, 4));
+				gifts.add(new CustomItem(SlimefunItems.CHRISTMAS_PRESENT, 1));
+				gifts.add(new CustomItem(SlimefunItems.CHRISTMAS_EGG_NOG, 1));
+				gifts.add(new CustomItem(SlimefunItems.CHRISTMAS_MILK, 1));
+				gifts.add(new CustomItem(SlimefunItems.CHRISTMAS_APPLE_CIDER, 1));
+				gifts.add(new CustomItem(SlimefunItems.CHRISTMAS_FRUIT_CAKE, 4));
+				gifts.add(new CustomItem(SlimefunItems.CHRISTMAS_APPLE_PIE, 4));
 			}
 			gifts.add(new SkullItem("mrCookieSlime"));
 			gifts.add(new SkullItem("timtower"));
@@ -175,8 +176,8 @@ public class ToolListener implements Listener {
 		if (StringUtils.equals(block2.getType().toString(), "SAPLING", "WOOD_PLATE", "STONE_PLATE", "IRON_PLATE", "GOLD_PLATE")) {
 			SlimefunItem sfItem = BlockStorage.check(e.getBlock().getRelative(BlockFace.UP));
 			if (sfItem != null && !(sfItem instanceof HandledBlock)) {
-				if (SlimefunItem.blockhandler.containsKey(sfItem.getName())) {
-					allow = SlimefunItem.blockhandler.get(sfItem.getName()).onBreak(e.getPlayer(), block2, sfItem, UnregisterReason.PLAYER_BREAK);
+				if (SlimefunItem.blockhandler.containsKey(sfItem.getID())) {
+					allow = SlimefunItem.blockhandler.get(sfItem.getID()).onBreak(e.getPlayer(), block2, sfItem, UnregisterReason.PLAYER_BREAK);
 				}
 				if (allow) {
 					block2.getWorld().dropItemNaturally(block2.getLocation(), BlockStorage.retrieve(block2));
@@ -191,8 +192,8 @@ public class ToolListener implements Listener {
 
 		SlimefunItem sfItem = BlockStorage.check(e.getBlock());
 		if (sfItem != null && !(sfItem instanceof HandledBlock)) {
-			if (SlimefunItem.blockhandler.containsKey(sfItem.getName())) {
-				allow = SlimefunItem.blockhandler.get(sfItem.getName()).onBreak(e.getPlayer(), e.getBlock(), sfItem, UnregisterReason.PLAYER_BREAK);
+			if (SlimefunItem.blockhandler.containsKey(sfItem.getID())) {
+				allow = SlimefunItem.blockhandler.get(sfItem.getID()).onBreak(e.getPlayer(), e.getBlock(), sfItem, UnregisterReason.PLAYER_BREAK);
 			}
 			if (allow) {
 				drops.add(BlockStorage.retrieve(e.getBlock()));
@@ -213,7 +214,7 @@ public class ToolListener implements Listener {
 				if (((BlockBreakHandler) handler).onBlockBreak(e, item, fortune, drops)) break;
 			}
 		}
-
+		
 		if (!drops.isEmpty()) {
 			e.getBlock().setType(Material.AIR);
 			for (ItemStack drop: drops) {
@@ -232,10 +233,10 @@ public class ToolListener implements Listener {
 			SlimefunItem item = BlockStorage.check(block);
     		if (item != null) {
     			blocks.remove();
-    			if (!item.getName().equalsIgnoreCase("HARDENED_GLASS") && !item.getName().equalsIgnoreCase("WITHER_PROOF_OBSIDIAN") && !item.getName().equalsIgnoreCase("WITHER_PROOF_GLASS") && !item.getName().equalsIgnoreCase("FORCEFIELD_PROJECTOR") && !item.getName().equalsIgnoreCase("FORCEFIELD_RELAY")) {
+    			if (!item.getID().equalsIgnoreCase("HARDENED_GLASS") && !item.getID().equalsIgnoreCase("WITHER_PROOF_OBSIDIAN") && !item.getID().equalsIgnoreCase("WITHER_PROOF_GLASS") && !item.getID().equalsIgnoreCase("FORCEFIELD_PROJECTOR") && !item.getID().equalsIgnoreCase("FORCEFIELD_RELAY")) {
     				boolean success = true;
-    				if (SlimefunItem.blockhandler.containsKey(item.getName())) {
-    					success = SlimefunItem.blockhandler.get(item.getName()).onBreak(null, block, item, UnregisterReason.EXPLODE);
+    				if (SlimefunItem.blockhandler.containsKey(item.getID())) {
+    					success = SlimefunItem.blockhandler.get(item.getID()).onBreak(null, block, item, UnregisterReason.EXPLODE);
     				}
     				if (success) {
     					BlockStorage.clearBlockInfo(block);

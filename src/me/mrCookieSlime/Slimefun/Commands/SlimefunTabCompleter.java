@@ -1,13 +1,14 @@
 package me.mrCookieSlime.Slimefun.Commands;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import me.mrCookieSlime.Slimefun.Objects.Research;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SlimefunTabCompleter implements TabCompleter {
 

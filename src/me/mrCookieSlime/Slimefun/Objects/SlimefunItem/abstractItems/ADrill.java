@@ -1,5 +1,15 @@
 package me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+
 import me.mrCookieSlime.CSCoreLibPlugin.CSCoreLib;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ClickAction;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.Item.CustomItem;
@@ -13,16 +23,6 @@ import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
 import me.mrCookieSlime.Slimefun.api.item_transport.ItemTransportFlow;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.material.MaterialData;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class ADrill extends AContainer {
 	
@@ -44,10 +44,9 @@ public abstract class ADrill extends AContainer {
 				this.constructMenu(this);
 			}
 
-			@SuppressWarnings("deprecation")
 			private void constructMenu(BlockMenuPreset preset) {
 				for (int i: border) {
-					preset.addItem(i, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 7), " "),
+					preset.addItem(i, new CustomItem(new ItemStack(Material.GRAY_STAINED_GLASS_PANE), " "),
 					new MenuClickHandler() {
 
 						@Override
@@ -58,7 +57,7 @@ public abstract class ADrill extends AContainer {
 					});
 				}
 				for (int i: border_out) {
-					preset.addItem(i, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 1), " "),
+					preset.addItem(i, new CustomItem(new ItemStack(Material.ORANGE_STAINED_GLASS_PANE), " "),
 					new MenuClickHandler() {
 
 						@Override
@@ -69,7 +68,7 @@ public abstract class ADrill extends AContainer {
 					});
 				}
 				
-				preset.addItem(22, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 15), " "),
+				preset.addItem(22, new CustomItem(new ItemStack(Material.BLACK_STAINED_GLASS_PANE), " "),
 				new MenuClickHandler() {
 
 					@Override
@@ -152,7 +151,7 @@ public abstract class ADrill extends AContainer {
 				progress.put(b, timeleft - 1);
 			}
 			else {
-				BlockStorage.getInventory(b).replaceExistingItem(22, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 15), " "));
+				BlockStorage.getInventory(b).replaceExistingItem(22, new CustomItem(new ItemStack(Material.BLACK_STAINED_GLASS_PANE), " "));
 				pushItems(b, processing.get(b).getOutput());
 				
 				progress.remove(b);

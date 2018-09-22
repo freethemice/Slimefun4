@@ -1,0 +1,10 @@
+diff a/src/me/mrCookieSlime/Slimefun/Objects/SlimefunItem/abstractItems/AContainer.java b/src/me/mrCookieSlime/Slimefun/Objects/SlimefunItem/abstractItems/AContainer.java	(rejected hunks)
+@@ -317,7 +317,7 @@
+ 			}
+ 			else {
+ 				BlockStorage.getInventory(b).replaceExistingItem(22, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 15), " "));
+-				pushItems(b, processing.get(b).getOutput());
++				pushItems(b, processing.get(b).getOutput().clone());
+ 				
+ 				progress.remove(b);
+ 				processing.remove(b);

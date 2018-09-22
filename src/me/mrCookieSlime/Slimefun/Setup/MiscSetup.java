@@ -1,8 +1,20 @@
 package me.mrCookieSlime.Slimefun.Setup;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.command.CommandSender;
+import org.bukkit.inventory.ItemStack;
+
 import me.mrCookieSlime.CSCoreLibPlugin.general.Chat.Colors;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.Item.CustomItemSerializer;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.Item.CustomItemSerializer.ItemFlag;
+import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import me.mrCookieSlime.Slimefun.Lists.RecipeType;
 import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
 import me.mrCookieSlime.Slimefun.Misc.PostSlimefunLoadingHandler;
@@ -12,27 +24,16 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.ReplacingAlloy;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunMachine;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.AutomatedCraftingChamber;
-import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.SlimefunRecipes;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.command.CommandSender;
-import org.bukkit.inventory.ItemStack;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 public class MiscSetup {
 	
 	public static List<PostSlimefunLoadingHandler> post_handlers = new ArrayList<PostSlimefunLoadingHandler>();
 	
 	public static void setupMisc() {
-		if (SlimefunItem.getByName("COMMON_TALISMAN") != null && (Boolean) Slimefun.getItemValue("COMMON_TALISMAN", "recipe-requires-nether-stars")) {
-			SlimefunItem.getByName("COMMON_TALISMAN").setRecipe(new ItemStack[] {SlimefunItems.MAGIC_LUMP_2, SlimefunItems.GOLD_8K, SlimefunItems.MAGIC_LUMP_2, null, new ItemStack(Material.NETHER_STAR), null, SlimefunItems.MAGIC_LUMP_2, SlimefunItems.GOLD_8K, SlimefunItems.MAGIC_LUMP_2});
+		if (SlimefunItem.getByID("COMMON_TALISMAN") != null && (Boolean) Slimefun.getItemValue("COMMON_TALISMAN", "recipe-requires-nether-stars")) {
+			SlimefunItem.getByID("COMMON_TALISMAN").setRecipe(new ItemStack[] {SlimefunItems.MAGIC_LUMP_2, SlimefunItems.GOLD_8K, SlimefunItems.MAGIC_LUMP_2, null, new ItemStack(Material.NETHER_STAR), null, SlimefunItems.MAGIC_LUMP_2, SlimefunItems.GOLD_8K, SlimefunItems.MAGIC_LUMP_2});
 		}
 		SlimefunItem.setRadioactive(SlimefunItems.URANIUM);
 		SlimefunItem.setRadioactive(SlimefunItems.SMALL_URANIUM);
@@ -53,7 +54,7 @@ public class MiscSetup {
 				iterator.remove();
 			}
 			else if (item.getItem() == null) {
-				System.err.println("[Slimefun] Removed bugged Item ('" + item.getName() + "')");
+				System.err.println("[Slimefun] Removed bugged Item ('" + item.getID() + "')");
 				iterator.remove();
 			}
 		}
@@ -78,7 +79,7 @@ public class MiscSetup {
 			item.load();
 		}
 
-		AutomatedCraftingChamber crafter = (AutomatedCraftingChamber) SlimefunItem.getByName("AUTOMATED_CRAFTING_CHAMBER");
+		AutomatedCraftingChamber crafter = (AutomatedCraftingChamber) SlimefunItem.getByID("AUTOMATED_CRAFTING_CHAMBER");
 		
 		if (crafter != null) {
 //			Iterator<Recipe> recipes = Bukkit.recipeIterator();
@@ -101,7 +102,7 @@ public class MiscSetup {
 //				}
 //			}
 			
-			for (ItemStack[] inputs: RecipeType.getRecipeInputList((SlimefunMachine) SlimefunItem.getByName("ENHANCED_CRAFTING_TABLE"))) {
+			for (ItemStack[] inputs: RecipeType.getRecipeInputList((SlimefunMachine) SlimefunItem.getByID("ENHANCED_CRAFTING_TABLE"))) {
 				StringBuilder builder = new StringBuilder();
 				int i = 0;
 				for (ItemStack item: inputs) {
@@ -114,12 +115,12 @@ public class MiscSetup {
 					i++;
 				}
 				
-				AutomatedCraftingChamber.recipes.put(builder.toString(), RecipeType.getRecipeOutputList((SlimefunMachine) SlimefunItem.getByName("ENHANCED_CRAFTING_TABLE"), inputs));
+				AutomatedCraftingChamber.recipes.put(builder.toString(), RecipeType.getRecipeOutputList((SlimefunMachine) SlimefunItem.getByID("ENHANCED_CRAFTING_TABLE"), inputs));
 			}
-			//SlimefunStartup.instance.myTitanHooks.setupVanillaCraft();
+			
 		}
 		
-		SlimefunItem grinder = SlimefunItem.getByName("GRIND_STONE");
+		SlimefunItem grinder = SlimefunItem.getByID("GRIND_STONE");
 		if (grinder != null) {
 			ItemStack[] input = null;
 			for (ItemStack[] recipe: ((SlimefunMachine) grinder).getRecipes()) {
@@ -133,7 +134,7 @@ public class MiscSetup {
 			}
 		}
 
-		SlimefunItem crusher = SlimefunItem.getByName("ORE_CRUSHER");
+		SlimefunItem crusher = SlimefunItem.getByID("ORE_CRUSHER");
 		if (crusher != null) {
 			ItemStack[] input = null;
 			for (ItemStack[] recipe: ((SlimefunMachine) crusher).getRecipes()) {
@@ -147,7 +148,7 @@ public class MiscSetup {
 			}
 		}
 
-		SlimefunItem smeltery = SlimefunItem.getByName("SMELTERY");
+		SlimefunItem smeltery = SlimefunItem.getByID("SMELTERY");
 		if (smeltery != null) {
 			ItemStack[] input = null;
 			for (ItemStack[] recipe: ((SlimefunMachine) smeltery).getRecipes()) {

@@ -1,16 +1,20 @@
 package me.mrCookieSlime.Slimefun.GitHub;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import me.mrCookieSlime.Slimefun.SlimefunStartup;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import me.mrCookieSlime.Slimefun.SlimefunStartup;
 
 public abstract class GitHubConnector {
 	

@@ -16,7 +16,6 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.material.MaterialData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +52,6 @@ public abstract class AutoAnvil extends AContainer {
 	
 	public abstract int getRepairFactor();
 	
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void tick(Block b) {
 		if (isProcessing(b)) {
@@ -80,7 +78,7 @@ public abstract class AutoAnvil extends AContainer {
 				else progress.put(b, timeleft - 1);
 			}
 			else {
-				BlockStorage.getInventory(b).replaceExistingItem(22, new CustomItem(new MaterialData(Material.STAINED_GLASS_PANE, (byte) 15), " "));
+				BlockStorage.getInventory(b).replaceExistingItem(22, new CustomItem(new ItemStack(Material.BLACK_STAINED_GLASS_PANE), " "));
 				pushItems(b, processing.get(b).getOutput());
 				
 				progress.remove(b);

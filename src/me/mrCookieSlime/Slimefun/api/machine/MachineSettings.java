@@ -1,8 +1,8 @@
 package me.mrCookieSlime.Slimefun.api.machine;
 
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
-
 import java.util.List;
+
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 
 public class MachineSettings {
 	
