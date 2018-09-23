@@ -1,10 +1,9 @@
-package me.mrCookieSlime.Slimefun.Titan;
+package me.mrCookieSlime.Slimefun;
 
 
 import me.badbones69.crazyenchantments.api.CEnchantments;
 import me.badbones69.crazyenchantments.api.CrazyEnchantments;
 import me.badbones69.crazyenchantments.api.EnchantmentType;
-import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.InvUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.Item.CustomItem;
 import me.mrCookieSlime.CSCoreLibPlugin.general.World.CustomSkull;
@@ -18,14 +17,16 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecip
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.AutoDisenchanter;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.AutoEnchanter;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
-import me.mrCookieSlime.Slimefun.SlimefunStartup;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.Soul;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import org.apache.commons.lang.WordUtils;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.Furnace;
@@ -40,7 +41,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
-import org.json.simple.JSONObject;
 
 import java.util.*;
 
@@ -51,9 +51,6 @@ import static me.mrCookieSlime.Slimefun.api.energy.ChargableBlock.getMaxCharge;
  * Created by Daniel on 1/10/2017.
  */
 public class TitanHooks {
-    public static Config backupChecker = new Config("Slimefun-backups.yml");
-    public static Config backupLog = new Config("Slimefun-backups.log");
-    public static Map<String, String> backupCheck = new HashMap<String, String>();
     public static Map<Block, Long> blockTicks = new HashMap<Block, Long>();
 
     public static List<AContainer> allMachines = new ArrayList<AContainer>();
@@ -64,78 +61,7 @@ public class TitanHooks {
 
     public TitanHooks()
     {
-        for(String s: backupChecker.getKeys())
-        {
-            backupCheck.put(s, (String)backupChecker.getValue(s));
-        }
-        clearBackupfromFile();
 
-       Bukkit.getScheduler().scheduleSyncRepeatingTask(SlimefunStartup.instance, new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("Slimefun is checking backups, maybe lag...");
-                //Bukkit.getServer().broadcastMessage(ChatColor.GRAY  + "Slimefun is checking backups, maybe lag...");
-                List<String> deleteme = new ArrayList<String>();
-                for(String s: backupCheck.keySet()) {
-                    String[] e2 = s.split(",");
-                    World world = Bukkit.getWorld(e2[0]);
-                    double x = Double.parseDouble(e2[1]);
-                    double y = Double.parseDouble(e2[2]);
-                    double z = Double.parseDouble(e2[3]);
-                    if (world != null) {
-                        if (world.isChunkLoaded((int) x >> 4, (int) z >> 4)) {
-                            Location place = new Location(world, x, y, z);
-                            if (place.getChunk().isLoaded()) {
-                                if (place.getBlock().getType() == Material.AIR) {
-                                    deleteme.add(s);
-                                    continue;
-                                }
-
-                                if (!BlockStorage.hasBlockInfo(place)) {
-                                    BlockStorage.setBlockInfo(place, (String) backupCheck.get(s), true);
-
-                                    System.out.println("SF --------------------> Fixed: " + s);
-                                    backupLog.setValue(s, "FIXED: " + (String) backupCheck.get(s));
-                                    if (!BlockStorage.hasBlockInfo(place)) {
-                                        System.out.println("SF --------------------> ERROR Fixing: " + s);
-                                        System.out.println("SF ----------------->>> " + (String) backupCheck.get(s));
-                                        backupLog.setValue(s, "ERROR: " + (String) backupCheck.get(s));
-                                        backupCheck.remove(s);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                for(int i = 0; i <deleteme.size();i++)
-                {
-                    String[] e2 = deleteme.get(i).split(",");
-                    World world = Bukkit.getWorld(e2[0]);
-                    double x = Double.parseDouble(e2[1]);
-                    double y = Double.parseDouble(e2[2]);
-                    double z = Double.parseDouble(e2[3]);
-                    if (world.isChunkLoaded((int)x >> 4, (int)z >> 4)) {
-                        Location place = new Location(world, x, y, z);
-
-
-                        if (BlockStorage.hasBlockInfo(place)) {
-                            //backupLog.setValue(place.toString(), "Slimefun Delete: " + (String) BlockStorage.getBlockInfoAsJson(place));
-                            //BlockStorage.clearBlockInfo(place);
-                            //System.out.println("SF --------------------> Delete: " + deleteme.get(i));
-
-                        } else {
-                            System.out.println("BC --------------------> Delete: " + deleteme.get(i));
-                            backupLog.setValue(place.toString(), "Backup Delete: " + backupCheck.get(deleteme.get(i)));
-                            backupCheck.remove(deleteme.get(i));
-
-                        }
-                    }
-                }
-                //Bukkit.getServer().broadcastMessage(ChatColor.GRAY  + "Slimefun backup check done!");
-                backupLog.save();
-            }
-        }, 300, 12000);
     }
     public static void FurnaceBurnFix(Block b, int speed)
     {
@@ -189,91 +115,7 @@ public class TitanHooks {
             return  true;
         }
     }
-    public void clearBackupfromFile() {
-        for(String s: backupCheck.keySet())
-        {
-            backupChecker.setValue(s, null);
-        }
-    }
-    public void SlimeFunShutDown()
-    {
-        saveBackuptoFile();
 
-    }
-
-    public void saveBackuptoFile() {
-        for(String s: backupCheck.keySet())
-        {
-            backupChecker.setValue(s, (String)backupCheck.get(s));
-        }
-
-        backupChecker.save();
-    }
-
-    public static boolean checkBackup(Location l)
-    {
-        if (backupCheck.containsKey(l.getWorld().getName() + "," + l.getBlockX() + ","  + l.getBlockY() + "," + l.getBlockZ()))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-    public static void deleteBackup(Location l)
-    {
-        boolean wasright =false;
-        String logInfo = "";
-        if (l.getChunk().isLoaded()) {
-            if (l.getBlock().getType() == Material.AIR) {
-                logInfo = backupCheck.get(l.getWorld().getName() + "," + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
-                backupCheck.remove(l.getWorld().getName() + "," + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
-                wasright = true;
-            }
-        }
-        if (!wasright)
-        {
-            backupLog.setValue(l.toString(), "Wrong Delete: " + logInfo);
-            backupLog.save();
-            System.out.println("SF --------------------> Wrong delete: " + l.toString());
-            try{
-                throw new Exception("Wrong Delete");
-            }catch(Exception ex){
-                ex.printStackTrace();
-                System.out.println(ex.toString());
-                System.out.println(ex.getMessage());
-            }
-        }
-    }
-
-    private static void setBackup(Location l, String Json)
-    {
-        backupCheck.put(l.getWorld().getName() + "," + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ(), Json);
-    }
-    public static void setBackup(Location l)
-    {
-        Config cfg =  BlockStorage.getBlockInfo(l);
-
-        JSONObject json = new JSONObject();
-        for (String key: cfg.getKeys()) {
-            json.put(key, cfg.getString(key));
-        }
-        setBackup(l, json.toJSONString());
-
-        if (BlockStorage.getBlockInfo(l, "id") == null)
-        {
-            try{
-                throw new Exception("No ID");
-            }catch(Exception ex){
-                ex.printStackTrace();
-                System.out.println(ex.toString());
-                System.out.println(ex.getMessage());
-                backupLog.setValue(l.toString(), "No ID, "+ ex.toString() + ", " + ex.getMessage());
-                backupLog.save();
-            }
-        }
-    }
     public static boolean checkForID(String Info)
     {
         if (Info.equalsIgnoreCase("id"))
@@ -621,8 +463,6 @@ public class TitanHooks {
             toRemove.clear();
 
         }
-
-        SlimefunStartup.instance.Saver.run();
     }
     public boolean axeCheck(ItemStack itemStack)
     {

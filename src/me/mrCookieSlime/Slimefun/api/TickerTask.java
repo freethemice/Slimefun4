@@ -60,7 +60,6 @@ public class TickerTask implements Runnable {
 		bugged_blocks.clear();
 		
 		Map<Location, Boolean> remove = new HashMap<Location, Boolean>(delete);
-		SlimefunStartup.instance.myTitanHooks.safeDeleteBlocks();
 		for (Map.Entry<Location, Boolean> entry: remove.entrySet()) {
 			BlockStorage._integrated_removeBlockInfo(entry.getKey(), entry.getValue());
 			delete.remove(entry.getKey());

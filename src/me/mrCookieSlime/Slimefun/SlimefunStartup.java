@@ -17,6 +17,9 @@ import me.mrCookieSlime.Slimefun.GitHub.GitHubSetup;
 import me.mrCookieSlime.Slimefun.Hashing.ItemHash;
 import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
 import me.mrCookieSlime.Slimefun.Misc.BookDesign;
+import me.mrCookieSlime.Slimefun.MySQL.Components.CallbackResults;
+import me.mrCookieSlime.Slimefun.MySQL.Components.ResultData;
+import me.mrCookieSlime.Slimefun.MySQL.MySQLMain;
 import me.mrCookieSlime.Slimefun.Objects.MultiBlock;
 import me.mrCookieSlime.Slimefun.Objects.Research;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunArmorPiece;
@@ -25,7 +28,6 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.AutoEnchanter;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.machines.ElectricDustWasher;
 import me.mrCookieSlime.Slimefun.Setup.*;
-import me.mrCookieSlime.Slimefun.Titan.TitanHooks;
 import me.mrCookieSlime.Slimefun.URID.AutoSavingTask;
 import me.mrCookieSlime.Slimefun.URID.URID;
 import me.mrCookieSlime.Slimefun.WorldEdit.WESlimefunManager;
@@ -43,7 +45,6 @@ import me.mrCookieSlime.Slimefun.listeners.*;
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -59,7 +60,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
-import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
 
 public class SlimefunStartup extends JavaPlugin {
 
@@ -70,6 +72,7 @@ public class SlimefunStartup extends JavaPlugin {
 	static Config items;
 	static Config whitelist;
 	static Config config;
+	public MySQLMain mySQLMain;
 
 	public static TickerTask ticker;
 
@@ -84,6 +87,7 @@ public class SlimefunStartup extends JavaPlugin {
 	public TitanHooks myTitanHooks;
 	public AutoSavingTask Saver;
 
+
 	@SuppressWarnings("deprecation")
 	@Override
 	public void onEnable() {
@@ -96,20 +100,20 @@ public class SlimefunStartup extends JavaPlugin {
 			if (currentVersion.startsWith("v")) {
 				boolean compatibleVersion = false;
 				StringBuilder versions = new StringBuilder();
-				
+
 				int i = 0;
 				for (String version: supported) {
 					if (currentVersion.startsWith(version)) {
 						compatibleVersion = true;
 					}
-					
+
 					if (i == 0) versions.append(version.substring(1).replaceFirst("_", ".").replace("_", ".X"));
 					else if (i == supported.length - 1) versions.append(" or " + version.substring(1).replaceFirst("_", ".").replace("_", ".X"));
 					else versions.append(", " + version.substring(1).replaceFirst("_", ".").replace("_", ".X"));
-					
+
 					i++;
 				}
-				
+
 				// Looks like you are using an unsupported Minecraft Version
 				if (!compatibleVersion) {
 					System.err.println("### Slimefun failed to load!");
@@ -128,6 +132,21 @@ public class SlimefunStartup extends JavaPlugin {
 			}
 
 			instance = this;
+			mySQLMain = new MySQLMain();
+			if (mySQLMain.isEnabled())
+			{
+				//MySQL data could take some time to load, lets do it early and give it more time.
+				for (World world: Bukkit.getWorlds()) {
+					mySQLMain.getBlock_storage().search("world", world.getName() ,new CallbackResults() {
+						@Override
+						public void onResult(List<HashMap<String, ResultData>> results) {
+							mySQLMain.setLoad_storage(world.getName(), results);
+							mySQLMain.setLoaded(world.getName(), true);
+						}
+					});
+				}
+			}
+
 			myTitanHooks = new TitanHooks();
 			System.out.println("[Slimefun] Loading Files...");
 			Files.cleanup();
@@ -188,11 +207,11 @@ public class SlimefunStartup extends JavaPlugin {
 			// Generating Oil as an OreGenResource (its a cool API)
 			OreGenSystem.registerResource(new OilResource());
 			OreGenSystem.registerResource(new NetherIceResource());
-			
+
 			// Setting up GitHub Connectors...
-			
+
 			GitHubSetup.setup();
-			
+
 			// All Slimefun Listeners
 			new ArmorListener(this);
 			new ItemListener(this);
@@ -224,7 +243,7 @@ public class SlimefunStartup extends JavaPlugin {
 							Player p = e.getPlayer();
 							if (!getWhitelist().getBoolean(p.getWorld().getName() + ".enabled")) return;
 							if (!getWhitelist().getBoolean(p.getWorld().getName() + ".enabled-items.SLIMEFUN_GUIDE")) return;
-							
+
 							if (config.getBoolean("guide.default-view-book")) p.getInventory().addItem(SlimefunGuide.getItem(BookDesign.BOOK));
 							else p.getInventory().addItem(SlimefunGuide.getItem(BookDesign.CHEST));
 						}
@@ -272,7 +291,21 @@ public class SlimefunStartup extends JavaPlugin {
 				SlimefunGuide.all_recipes = config.getBoolean("options.show-vanilla-recipes-in-guide");
 				MiscSetup.loadItems();
 
+
 				for (World world: Bukkit.getWorlds()) {
+					if (mySQLMain.isEnabled()) {
+						System.out.println("[Slimefun]: waiting on MySQL to load for world " + world.getName() + "...");
+						long starttime = System.currentTimeMillis();
+						while (!mySQLMain.isLoaded(world.getName())) {
+							//waiting on the sql to load
+							long nowtime = System.currentTimeMillis();
+							if (nowtime - starttime > 10000)
+							{
+								starttime = System.currentTimeMillis();
+								System.out.println("[Slimefun]: waiting on MySQL to load...");
+							}
+						}
+					}
 					new BlockStorage(world);
 				}
 
@@ -352,9 +385,9 @@ public class SlimefunStartup extends JavaPlugin {
 			Saver = new AutoSavingTask();
 			getServer().getScheduler().scheduleAsyncRepeatingTask(this, Saver, 1200L, config.getInt("options.auto-save-delay-in-minutes") * 60L * 20L);
 			getServer().getScheduler().scheduleAsyncRepeatingTask(this, ticker, 100L, config.getInt("URID.custom-ticker-delay"));
-			
+
 			getServer().getScheduler().scheduleAsyncRepeatingTask(this, new Runnable() {
-				
+
 				@Override
 				public void run() {
 					for (GitHubConnector connector: GitHubConnector.connectors) {
@@ -362,7 +395,7 @@ public class SlimefunStartup extends JavaPlugin {
 					}
 				}
 			}, 80L, 60 * 60 * 20L);
-			
+
 			// Hooray!
 			System.out.println("[Slimefun] Finished!");
 
@@ -395,20 +428,16 @@ public class SlimefunStartup extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
+
 		myTitanHooks.titanClose();
 
-		Bukkit.getScheduler().cancelTasks(this);
-		
+
+
 		// Finishes all started movements/removals of block data
 		ticker.HALTED = true;
 		ticker.run();
-		
+
 		try {
-			for (Map.Entry<Location, Location> entry: ticker.move.entrySet()) {
-				SlimefunStartup.instance.myTitanHooks.deleteBackup(entry.getKey());
-				//BlockStorage._integrated_moveBlockInfo(entry.getKey(), entry.getValue());
-				SlimefunStartup.instance.myTitanHooks.setBackup(entry.getValue());
-			}
 
 			for (World world: Bukkit.getWorlds()) {
 				BlockStorage storage = BlockStorage.getStorage(world);
@@ -423,14 +452,14 @@ public class SlimefunStartup extends JavaPlugin {
 			SlimefunBackup.start();
 		} catch (Exception x) {}
 
-		try {
-
-			myTitanHooks.SlimeFunShutDown();
-		}
-		catch (Exception e)
+		if (mySQLMain.isEnabled())
 		{
-
+			//we can't just end all the thread, because its data being save to MySQL. We need to wait on them, and try and fource them to finish.
+			mySQLMain.disable();
 		}
+
+		Bukkit.getScheduler().cancelTasks(this);
+
 
 		// Prevent Memory Leaks
 		config = null;

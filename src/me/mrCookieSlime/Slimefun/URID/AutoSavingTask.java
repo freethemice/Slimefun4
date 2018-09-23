@@ -12,9 +12,6 @@ public class AutoSavingTask implements Runnable {
 	
 	@Override
 	public void run() {
-		SlimefunStartup.instance.myTitanHooks.saveBackuptoFile();
-		SlimefunStartup.instance.myTitanHooks.clearBackupfromFile();
-
 		Set<BlockStorage> worlds = new HashSet<BlockStorage>();
 		
 		for (World world: Bukkit.getWorlds()) {
