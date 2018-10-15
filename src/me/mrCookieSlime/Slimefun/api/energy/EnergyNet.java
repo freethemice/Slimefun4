@@ -1,6 +1,6 @@
 package me.mrCookieSlime.Slimefun.api.energy;
 
-import com.firesoftitan.TitanLogger;
+import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Math.DoubleHandler;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
 import me.mrCookieSlime.Slimefun.SlimefunStartup;
@@ -13,10 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class EnergyNet extends Network {
 	public enum NetworkComponent {
@@ -87,6 +84,18 @@ public class EnergyNet extends Network {
 	private Set<Location> storage = new HashSet<Location>();
 	private Set<Location> output = new HashSet<Location>();
 
+	public Set<Location> getInput() {
+		return input;
+	}
+
+	public Set<Location> getOutput() {
+		return output;
+	}
+
+	public Set<Location> getStorage() {
+		return storage;
+	}
+
 	protected EnergyNet(Location l) {
 		super(l);
 	}
@@ -118,10 +127,10 @@ public class EnergyNet extends Network {
 				if (ChargableBlock.isCapacitor(l)) storage.add(l);
 				break;
 			case CONSUMER:
-				output.add(l);
+					output.add(l);
 				break;
 			case SOURCE:
-				input.add(l);
+					input.add(l);
 				break;
 			default:
 				break;
@@ -144,28 +153,21 @@ public class EnergyNet extends Network {
 
 			for (final Location source: input) {
 
-				TitanLogger.TitanChunk.info("d " + source.toString());
 				long timestamp = System.currentTimeMillis();
 				if (source.getWorld().isChunkLoaded(source.getBlockX() >> 4, source.getBlockZ() >> 4)) {
 					SlimefunItem item = BlockStorage.check(source);
-					TitanLogger.TitanChunk.info("d 2 " + item.getID());
 					double energy = item.getEnergyTicker().generateEnergy(source, item, BlockStorage.getLocationInfo(source));
-					TitanLogger.TitanChunk.info("d 3");
 					if (item.getEnergyTicker().explode(source)) {
-						TitanLogger.TitanChunk.info("d 4");
 						BlockStorage.clearBlockInfo(source);
-						TitanLogger.TitanChunk.info("d 5");
 						Bukkit.getScheduler().scheduleSyncDelayedTask(SlimefunStartup.instance, new Runnable() {
 
 							@Override
 							public void run() {
-								TitanLogger.TitanChunk.info("d 6" + source.toString());
 								source.getBlock().setType(Material.LAVA);
 								source.getWorld().createExplosion(source, 0F, false);
 							}
 						});
 					} else {
-						TitanLogger.TitanChunk.info("d e2");
 						supply = supply + energy;
 					}
 				}
@@ -176,7 +178,13 @@ public class EnergyNet extends Network {
 			}
 
 			int available = (int) DoubleHandler.fixDouble(supply);
+			List<Location> delete = new ArrayList<Location>();
 			for (Location destination: output) {
+				Config cfg = BlockStorage.getLocationInfo(destination);
+				if (cfg == null || cfg.getString("id") == null)
+				{
+					delete.add(destination);
+				}
 				int capacity = ChargableBlock.getMaxCharge(destination);
 				int charge = ChargableBlock.getCharge(destination);
 				if (charge < capacity) {
@@ -193,6 +201,10 @@ public class EnergyNet extends Network {
 						}
 					}
 				}
+			}
+			for(Location destination: delete)
+			{
+				output.remove(destination);
 			}
 			for (Location battery: storage) {
 				if (available > 0) {

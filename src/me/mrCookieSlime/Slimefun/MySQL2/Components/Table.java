@@ -18,12 +18,15 @@ public class Table {
     private String name;
     private HashMap<String, Object> tempRow;
     private Database database;
+    private HashMap<String, PreparedStatement> preparedStatementBulkData;
+    private int builkDataCount = 0;
     public Table(String myName)
     {
         this.types = new ArrayList<DataType>();
         this.typesByName = new HashMap<String, DataType>();
         this.name = myName;
         this.database = MySQLMain.instance.getDatebase();
+        preparedStatementBulkData = new HashMap<String, PreparedStatement>();
     }
     public Table(String myName, String DatabaseName)
     {
@@ -31,6 +34,7 @@ public class Table {
         this.typesByName = new HashMap<String, DataType>();
         this.name = myName;
         this.database = MySQLMain.instance.getDatebase(DatabaseName);
+        preparedStatementBulkData = new HashMap<String, PreparedStatement>();
         if (this.database == null)
         {
             MySQLMain.instance.addDatabase(DatabaseName, true);
@@ -43,6 +47,7 @@ public class Table {
         this.typesByName = new HashMap<String, DataType>();
         this.name = myName;
         this.database = MySQLMain.instance.getDatebase(DatabaseName);
+        preparedStatementBulkData = new HashMap<String, PreparedStatement>();
         if (this.database == null)
         {
             MySQLMain.instance.addDatabase(DatabaseName, keepalive);
@@ -107,7 +112,7 @@ public class Table {
                 }
             }
         };
-        tmpY.runTaskAsynchronously(SlimefunStartup.instance);
+        tmpY.runTask(SlimefunStartup.instance);
         MySQLMain.instance.tasksSaver.put(tmpY.getTaskId(), tmpY);
     }
     public void search(final String type,final Object what, final CallbackResults callback)
@@ -161,7 +166,7 @@ public class Table {
                 }
             }
         };
-        tmpY.runTaskAsynchronously(SlimefunStartup.instance);
+        tmpY.runTask(SlimefunStartup.instance);
         MySQLMain.instance.tasksSaver.put(tmpY.getTaskId(), tmpY);
     }
 
@@ -256,7 +261,7 @@ public class Table {
                 }
             }
         };
-        tmpY.runTaskAsynchronously(SlimefunStartup.instance);
+        tmpY.runTask(SlimefunStartup.instance);
         MySQLMain.instance.tasksSaver.put(tmpY.getTaskId(), tmpY);
 
 
@@ -301,7 +306,6 @@ public class Table {
 
         return -1;
     }
-    //DELETE FROM `lkr8bkxu_firesoftitan`.`fot_test` WHERE  `id`=12345 AND `name`='Farthead1' AND `something`=b'0' LIMIT 1;
     public void delete(String name, Object what)
     {
         DataType type = getDataType(name);
@@ -339,8 +343,51 @@ public class Table {
 
             }
         };
-        tmpY.runTaskAsynchronously(SlimefunStartup.instance);
+        tmpY.runTask(SlimefunStartup.instance);
         MySQLMain.instance.tasksSaver.put(tmpY.getTaskId(), tmpY);
+    }
+    public void deleteBulk(String name, Object what)
+    {
+        DataType type = getDataType(name);
+        deleteBulk(type, what);
+    }
+    public void deleteBulk(DataType type, final Object what)
+    {
+        final String trace =  MySQLMain.getTrace();
+        final String simpletrace =  MySQLMain.getSimpleTrace();
+        final String pluginName = MySQLMain.getPlugin();
+
+
+        long first = System.currentTimeMillis();
+        PreparedStatement ps = null;
+        ResultData conver = new ResultData(type, what);
+        Object whatconverted = conver.get();
+        try {
+            String statment = "DELETE FROM " + name + " WHERE " + type.getName() + " = ? LIMIT 1";
+            if (!preparedStatementBulkData.containsKey(statment))
+            {
+                preparedStatementBulkData.put(statment, database.getConnection().prepareStatement(statment));
+            }
+            PreparedStatement tmpST = preparedStatementBulkData.get(0);
+            type.getType().setPreparedStatement(tmpST, 1, whatconverted);
+            tmpST.addBatch();
+            builkDataCount++;
+            if (builkDataCount >= MySQLMain.instance.getQueued_size())
+            {
+                sendDataBulk(statment, true);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.out.println("----------------------------------");
+            System.out.println(trace);
+            System.out.println("----------------------------------");
+        } finally {
+            long last = System.currentTimeMillis() - first;
+            printThreadTime(last);
+            close(ps);
+        }
+
+
     }
 
     private void startRow()
@@ -365,6 +412,98 @@ public class Table {
         }
         tempRow.put(dataname, value);
         return true;
+    }
+    public void insertDataBulk()
+    {
+        insertDataBulk(true);
+    }
+    public void insertDataBulk(boolean useThread)
+    {
+        final HashMap<String, Object> HoldMetempRow = new HashMap<String, Object>();
+        if (tempRow != null) {
+            HoldMetempRow.putAll(tempRow);
+            tempRow.clear();
+        }
+
+        String AoutputString = "REPLACE INTO " + name + " (";
+        String BoutputString = ") VALUES(";
+        List<String> order = new ArrayList<String>();
+        for(DataType dt: types)
+        {
+            if (HoldMetempRow.containsKey(dt.getName())) {
+                AoutputString = AoutputString + dt.getName() + ",";
+                BoutputString = BoutputString + "?,";
+                order.add(dt.getName());
+            }
+        }
+        AoutputString = AoutputString.substring(0, AoutputString.length() - 1);
+        BoutputString = BoutputString.substring(0, BoutputString.length() - 1);
+
+        try {
+            String statment =AoutputString + BoutputString + ")";
+            if (!preparedStatementBulkData.containsKey(statment))
+            {
+                preparedStatementBulkData.put(statment, database.getConnection().prepareStatement(statment));
+            }
+            PreparedStatement tmpST = preparedStatementBulkData.get(0);
+            int i = 1;
+            for(String key: order)
+            {
+                DataTypeEnum DT = typesByName.get(key).getType();
+                DT.setPreparedStatement(tmpST, i, HoldMetempRow.get(key));
+                i++;
+            }
+            tmpST.addBatch();
+            builkDataCount++;
+            if (builkDataCount >= MySQLMain.instance.getQueued_size())
+            {
+                sendDataBulk(statment, useThread);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+    }
+    private void sendDataBulk(String key)
+    {
+        sendDataBulk(key,true);
+    }
+    private void sendDataBulk(String key, boolean useThread)
+    {
+        if (builkDataCount <= 0) return;
+        final String trace =  MySQLMain.getTrace();
+        final String simpletrace =  MySQLMain.getSimpleTrace();
+        final String pluginName = MySQLMain.getPlugin();
+        final PreparedStatement tmpST = preparedStatementBulkData.get(key);
+
+        preparedStatementBulkData.remove(key);
+        MySQLRunnable tmpY = new MySQLRunnable(pluginName, simpletrace) {
+
+            @Override
+            public void run() {
+                if (!useThread) System.out.println("[Slimefun]: Sending data to MySql, queued: " + builkDataCount + "/" + MySQLMain.instance.getQueued_size());
+                try {
+                    tmpST.executeBatch();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    System.out.println("----------------------------------");
+                    System.out.println(trace);
+                    System.out.println("----------------------------------");
+                } finally {
+                    close(tmpST);
+                    builkDataCount = 0;
+                }
+            }
+        };
+        if (builkDataCount < 100) {
+            tmpY.runTask(SlimefunStartup.instance);
+            MySQLMain.instance.tasksSaver.put(tmpY.getTaskId(), tmpY);
+        }
+        else {
+            tmpY.run();
+        }
+
+
     }
     public void insertData()
     {
@@ -403,7 +542,6 @@ public class Table {
                     AoutputString = AoutputString.substring(0, AoutputString.length() - 1);
                     BoutputString = BoutputString.substring(0, BoutputString.length() - 1);
 
-
                     try {
                         ps = database.getConnection().prepareStatement(AoutputString + BoutputString +")", Statement.RETURN_GENERATED_KEYS);
 
@@ -437,7 +575,7 @@ public class Table {
                 }
             }
         };
-        tmpY.runTaskAsynchronously(SlimefunStartup.instance);
+        tmpY.runTask(SlimefunStartup.instance);
         MySQLMain.instance.tasksSaver.put(tmpY.getTaskId(), tmpY);
     }
     @Deprecated

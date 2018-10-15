@@ -1,12 +1,13 @@
  package me.mrCookieSlime.Slimefun.api;
 
+ import com.firesoftitan.play.titansql.ResultData;
+ import com.firesoftitan.play.titansql.Table;
+ import com.firesoftitan.play.titansql.TitanSQL;
  import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
  import me.mrCookieSlime.CSCoreLibPlugin.general.Math.DoubleHandler;
- import me.mrCookieSlime.Slimefun.MySQL.Components.ResultData;
- import me.mrCookieSlime.Slimefun.MySQL.Components.Table;
- import me.mrCookieSlime.Slimefun.MySQL.MySQLMain;
  import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
  import me.mrCookieSlime.Slimefun.SlimefunStartup;
+ import me.mrCookieSlime.Slimefun.api.MySQL.MySQLMain;
  import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
  import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
  import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
@@ -80,43 +81,68 @@ public class BlockStorage {
 
 	public BlockStorage(final World w) {
 		if (worlds.containsKey(w.getName())) return;
-		MySQLMain mySQLMain = SlimefunStartup.instance.mySQLMain;
 		Table block_storage_table = null;
-		if (mySQLMain.isEnabled())
+		if (MySQLMain.instance.isEnabled())
 		{
-			block_storage_table = mySQLMain.getBlock_storage();
+			block_storage_table = MySQLMain.instance.getBlock_storage();
+			System.out.println("[Slimefun] Waiting for MySQL for world: " + w.getName());
+			long timestamp = System.currentTimeMillis();
+			while (!MySQLMain.instance.isLoaded(w.getName()))
+			{
+				if (timestamp + info_delay < System.currentTimeMillis()) {
+					System.out.println("[Slimefun] Waiting for MySQL for world: " + w.getName());
+					timestamp = System.currentTimeMillis();
+				}
+			}
 		}
 		this.world = w;
 		System.out.println("[Slimefun] Loading Blocks for World \"" + w.getName() + "\"");
 		System.out.println("[Slimefun] This may take a long time...");
-		if (mySQLMain.isEnabled())
-		{
-			List<HashMap<String, ResultData>> results = mySQLMain.getLoad_storage(this.world.getName());
+		if (MySQLMain.instance.isEnabled()) {
+
+			List<HashMap<String, ResultData>> results = MySQLMain.instance.getLoad_storage(this.world.getName());
 			if (results != null && results.size() > 0) {
-				for (HashMap<String, ResultData> result : results) {
-					String world = result.get("world").getString();
-					if (world.equals(this.world.getName()))
-					{
-						String key = result.get("id").getString();
-						String id = result.get("slimefun_id").getString();
-						Location l = deserializeLocation(key);
-						String chunk_string = locationToChunkString(l);
-
-						String json = result.get("json").getString();
-						Config blockInfo = parseBlockInfo(l, json);
-						storage.put(l, blockInfo);
-						if (SlimefunItem.isTicking(id)) {
-							Set<Location> locations = ticking_chunks.containsKey(chunk_string) ? ticking_chunks.get(chunk_string): new HashSet<Location>();
-							locations.add(l);
-							ticking_chunks.put(chunk_string, locations);
-							if (!loaded_tickers.contains(chunk_string)) loaded_tickers.add(chunk_string);
+				long total = results.size(), start = System.currentTimeMillis();
+				long done = 0, timestamp = System.currentTimeMillis(), totalBlocks = 0;
+				try {
+					for (HashMap<String, ResultData> result : results) {
+						String world = result.get("world").getString();
+						if (timestamp + info_delay < System.currentTimeMillis()) {
+							System.out.println("[Slimefun] Loading Blocks From MySQL... " + Math.round((((done * 100.0f) / total) * 100.0f) / 100.0f) + "% done (\"" + w.getName() + "\")");
+							timestamp = System.currentTimeMillis();
 						}
+						if (world.equals(this.world.getName())) {
+							String key = result.get("id").getString();
+							String id = result.get("slimefun_id").getString();
+							Location l = deserializeLocation(key);
+							String chunk_string = locationToChunkString(l);
 
+							String json = result.get("json").getString();
+							Config blockInfo = parseBlockInfo(l, json);
+							storage.put(l, blockInfo);
+							MySQLMain.instance.setBlockBackUp(l, json);
+							totalBlocks++;
+							if (SlimefunItem.isTicking(id)) {
+								Set<Location> locations = ticking_chunks.containsKey(chunk_string) ? ticking_chunks.get(chunk_string) : new HashSet<Location>();
+								locations.add(l);
+								ticking_chunks.put(chunk_string, locations);
+								if (!loaded_tickers.contains(chunk_string)) loaded_tickers.add(chunk_string);
+							}
+
+						}
+						done++;
 					}
+
+				} finally {
+					long time = (System.currentTimeMillis() - start);
+					System.out.println("[Slimefun] Loading Blocks From MySQL... 100% (FINISHED - " + time + "ms)");
+					System.out.println("[Slimefun] Loaded a total of " + totalBlocks + " Blocks for World \"" + world.getName() + "\"");
+					if (totalBlocks > 0)
+						System.out.println("[Slimefun] Avg: " + DoubleHandler.fixDouble((double) time / (double) totalBlocks, 3) + "ms/Block");
 				}
+
 			}
 		}
-
 		File f = new File(path_blocks + w.getName());
 		if (f.exists()) {
 			long total = f.listFiles().length, start = System.currentTimeMillis();
@@ -127,7 +153,13 @@ public class BlockStorage {
 				for (File file: fliles) {
 					if (file.getName().endsWith(".sfb")) {
 						if (timestamp + info_delay < System.currentTimeMillis()) {
-							System.out.println("[Slimefun] Loading Blocks... " + Math.round((((done * 100.0f) / total) * 100.0f) / 100.0f) + "% done (\"" + w.getName() + "\")");
+							if (MySQLMain.instance.isEnabled())
+							{
+								System.out.println("[Slimefun] Converting Blocks Data To MySQL... " + Math.round((((done * 100.0f) / total) * 100.0f) / 100.0f) + "% done (\"" + w.getName() + "\")");
+							}
+							else {
+								System.out.println("[Slimefun] Loading Blocks... " + Math.round((((done * 100.0f) / total) * 100.0f) / 100.0f) + "% done (\"" + w.getName() + "\")");
+							}
 							timestamp = System.currentTimeMillis();
 						}
 
@@ -140,13 +172,14 @@ public class BlockStorage {
 								String json = cfg.getString(key);
 								Config blockInfo = parseBlockInfo(l, json);
 								if (blockInfo == null) continue;
-								if (mySQLMain.isEnabled())
+								if (MySQLMain.instance.isEnabled())
 								{
 									block_storage_table.setDataField("id", key);
 									block_storage_table.setDataField("slimefun_id", blockInfo.getString("id"));
 									block_storage_table.setDataField("world", l.getWorld().getName());
 									block_storage_table.setDataField("json", json);
 									block_storage_table.insertData();
+									MySQLMain.instance.setBlockBackUp(l, json);
 								}
 								storage.put(l, blockInfo);
 
@@ -162,17 +195,22 @@ public class BlockStorage {
 							}
 						}
 						done++;
-						if (mySQLMain.isEnabled())
-						{
-							file.renameTo(new File(file.getName().replace(".sfb", "bak")));
-						}
+
 					}
 				}
+				if (MySQLMain.instance.isEnabled())
+				{
+					File f2 = new File(path_blocks + w.getName() + "_old");
+					f.renameTo(f2);
+				}
 			} finally {
-				long time = (System.currentTimeMillis() - start);
-				System.out.println("[Slimefun] Loading Blocks... 100% (FINISHED - " + time + "ms)");
-				System.out.println("[Slimefun] Loaded a total of " + totalBlocks + " Blocks for World \"" + world.getName() + "\"");
-				if (totalBlocks > 0) System.out.println("[Slimefun] Avg: " + DoubleHandler.fixDouble((double) time / (double) totalBlocks, 3) + "ms/Block");
+				if (totalBlocks > 0) {
+					long time = (System.currentTimeMillis() - start);
+					System.out.println("[Slimefun] Loading Blocks... 100% (FINISHED - " + time + "ms)");
+					System.out.println("[Slimefun] Loaded a total of " + totalBlocks + " Blocks for World \"" + world.getName() + "\"");
+					if (totalBlocks > 0)
+						System.out.println("[Slimefun] Avg: " + DoubleHandler.fixDouble((double) time / (double) totalBlocks, 3) + "ms/Block");
+				}
 			}
 		}
 		else f.mkdirs();
@@ -281,25 +319,24 @@ public class BlockStorage {
 					Config blockInfo = parseBlockInfo(l, json);
 					if (blockInfo.getString("id") == null)
 					{
-						System.out.println("[Slimefun]: Block with no id can't be saved, this will turn into a head. location: " + key);
+						//this block turned into a head lets retrive the data from the MySQL and not save this bad data.
+						Config blockBackup = mySQLMain.instance.getBlockBackUp(l);
+						if (blockBackup != null) {
+							storage.put(l, blockBackup);
+						}
+						//System.out.println("[Slimefun]: Block with no id can't be saved, this will turn into a head. location: " + key);
 						continue;
 					}
 					block_storage_table.setDataField("id", key);
 					block_storage_table.setDataField("slimefun_id", blockInfo.getString("id"));
 					block_storage_table.setDataField("world", l.getWorld().getName());
 					block_storage_table.setDataField("json", json);
-					if (!SlimefunStartup.instance.isEnabled())
-					{
-						//We can't start new threads when the server is shuting down so we have to do it this way.
-						block_storage_table.insertDataDirect();
-					}
-					else {
-						block_storage_table.insertData();
-					}
+					block_storage_table.insertData();
 				}
 			}
 		}
-		
+
+
 		Map<Location, BlockMenu> inventories2 = new HashMap<Location, BlockMenu>(inventories);
 		
 		for (Map.Entry<Location, BlockMenu> entry: inventories2.entrySet()) {
@@ -373,6 +410,19 @@ public class BlockStorage {
 
 			BlockStorage storage = getStorage(l.getWorld());
 			Config cfg = storage.storage.get(l);
+			if (MySQLMain.instance.isEnabled())
+			{
+				if (cfg == null)
+				{
+					cfg = MySQLMain.instance.getBlockBackUp(l);
+					if (cfg != null)
+					{
+						System.out.println("Saved!!!!!!");
+						storage.storage.put(l, cfg);
+						return cfg;
+					}
+				}
+			}
 			return cfg == null ? new BlockInfoConfig() : cfg;
 	}
 	
@@ -470,6 +520,30 @@ public class BlockStorage {
 
 	public static void setBlockInfo(Location l, Config cfg, boolean updateTicker) {
 		BlockStorage storage = getStorage(l.getWorld());
+		if (cfg.getString("id") == null)
+		{
+			Config havData = storage.storage.get(l);
+			if (havData == null || havData.getString("id") == null)
+			{
+				System.out.println("---------------------A-----------------------");
+				System.out.println(TitanSQL.getTrace());
+				System.out.println("---------------------A-----------------------");
+				return;
+			}
+			for (String key: havData.getKeys())
+			{
+				cfg.setValue(key, havData.getValue(key));
+			}
+			if (cfg.getString("id") == null)
+			{
+				System.out.println("-------------------B-------------------------");
+				System.out.println(TitanSQL.getTrace());
+				System.out.println("--------------------B------------------------");
+				return;
+			}
+			System.out.println("--------------------Fixed------------------------");
+		}
+
 		storage.storage.put(l, cfg);
 		if (BlockMenuPreset.isInventory(cfg.getString("id"))) {
 			if (BlockMenuPreset.isUniversalInventory(cfg.getString("id"))) {
@@ -513,6 +587,12 @@ public class BlockStorage {
 		BlockStorage storage = getStorage(l.getWorld());
 		if (hasBlockInfo(l)) {
 			refreshCache(storage, l, getLocationInfo(l).getString("id"), null, destroy);
+			if (MySQLMain.instance.isEnabled())
+			{
+				MySQLMain.instance.getBlock_storage().delete("id", getLocationInfo(l).getString("key"));
+				MySQLMain.instance.deleteBackUp(l);
+
+			}
 			storage.storage.remove(l);
 		}
 		
@@ -562,6 +642,12 @@ public class BlockStorage {
 		}
 		
 		refreshCache(storage, from, getLocationInfo(from).getString("id"), null, true);
+		if (MySQLMain.instance.isEnabled())
+		{
+			MySQLMain.instance.getBlock_storage().delete("id", getLocationInfo(from).getString("key"));
+			MySQLMain.instance.deleteBackUp(from);
+
+		}
 		storage.storage.remove(from);
 
 		String chunk_string = locationToChunkString(from);

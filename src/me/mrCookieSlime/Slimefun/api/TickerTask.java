@@ -1,6 +1,5 @@
 package me.mrCookieSlime.Slimefun.api;
 
-import com.firesoftitan.TitanLogger;
 import me.mrCookieSlime.CSCoreLibPlugin.CSCoreLib;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Chat.TellRawMessage;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Chat.TellRawMessage.HoverAction;
@@ -198,10 +197,6 @@ public class TickerTask implements Runnable {
 									});
 								}
 								else {
-									if (item.getID().equalsIgnoreCase("ENERGY_REGULATOR")) {
-										TitanLogger.TitanChunk.info("Start Tick: " + item.getID());
-										TitanLogger.TitanChunk.info(l.toString());
-									}
 									long timestamp3 = System.currentTimeMillis();
 									item.getBlockTicker().tick(b, item, BlockStorage.getLocationInfo(l));
 									
@@ -209,9 +204,6 @@ public class TickerTask implements Runnable {
 									map_chunk.put(c, (map_chunk.containsKey(c) ? map_chunk.get(c): 0) + 1);
 									map_machine.put(item.getID(), (map_machine.containsKey(item.getID()) ? map_machine.get(item.getID()): 0) + 1);
 									block_timings.put(l, System.currentTimeMillis() - timestamp3);
-									if (item.getID().equalsIgnoreCase("ENERGY_REGULATOR")) {
-										TitanLogger.TitanChunk.info("End Tick: " + item.getID());
-									}
 								}
 								tickers.add(item.getBlockTicker());
 							} catch (Exception x) {

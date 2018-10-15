@@ -3261,13 +3261,7 @@ public class SlimefunSetup {
 
 			@Override
 			public void tick(Block b, SlimefunItem item, Config data) {
-				BukkitRunnable tmp = new BukkitRunnable() {
-					@Override
-					public void run() {
-						EnergyNet.getNetworkFromLocationOrCreate(b.getLocation()).tick(b);
-					}
-				};
-				tmp.runTaskLater(SlimefunStartup.instance, 1);
+				EnergyNet.getNetworkFromLocationOrCreate(b.getLocation()).tick(b);
 
 			}
 		});

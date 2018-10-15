@@ -5,7 +5,8 @@ description: Slimefun basically turns your entire Server into a FTB modpack with
 website: http://TheBusyBiscuit.github.io/
 
 main: me.mrCookieSlime.Slimefun.SlimefunStartup
-softdepend: [CS-CoreLib, ClearLag, WorldEdit]
+
+softdepend: [TitanSQL, CS-CoreLib, ClearLag, WorldEdit]
 
 api-version: 1.13
 

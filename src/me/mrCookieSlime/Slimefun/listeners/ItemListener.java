@@ -70,6 +70,7 @@ public class ItemListener implements Listener {
 	 */
 	@EventHandler
 	public void onIgnitionChamberItemMove(InventoryMoveItemEvent e) {
+
 		if (e.getInitiator().getHolder() instanceof Hopper) {
 			if (BlockStorage.check(((Hopper) e.getInitiator().getHolder()).getBlock(), "IGNITION_CHAMBER")) {
 				e.setCancelled(true);
